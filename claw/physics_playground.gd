@@ -11,10 +11,6 @@ extends Node2D
 ## is just a new scene that project.godot currently points to instead.
 
 
-const PIT_WIDTH := 600.0
-const PIT_HEIGHT := 420.0
-const CEILING_Y := 40.0
-
 var _world: Node2D
 var _claw: ClawRig
 var _balls_container: Node2D
@@ -35,7 +31,7 @@ func _ready() -> void:
 	# whole left half of the machine (every negative local x) would sit
 	# off-screen. Center the world horizontally instead of assuming a camera.
 	_world = Node2D.new()
-	_world.position = Vector2(get_viewport_rect().size.x / 2.0, CEILING_Y)
+	_world.position = Vector2(get_viewport_rect().size.x / 2.0, GameData.CEILING_Y)
 	add_child(_world)
 
 	_build_world()
@@ -48,20 +44,20 @@ func _build_world() -> void:
 	var floor_body := StaticBody2D.new()
 	var floor_shape := CollisionShape2D.new()
 	var floor_rect := RectangleShape2D.new()
-	floor_rect.size = Vector2(PIT_WIDTH, 20)
+	floor_rect.size = Vector2(GameData.PIT_WIDTH, 20)
 	floor_shape.shape = floor_rect
 	floor_body.add_child(floor_shape)
-	floor_body.position = Vector2(0, PIT_HEIGHT)
+	floor_body.position = Vector2(0, GameData.PIT_HEIGHT)
 	_world.add_child(floor_body)
 
 	for side in [-1, 1]:
 		var wall := StaticBody2D.new()
 		var wall_shape := CollisionShape2D.new()
 		var wall_rect := RectangleShape2D.new()
-		wall_rect.size = Vector2(20, PIT_HEIGHT)
+		wall_rect.size = Vector2(20, GameData.PIT_HEIGHT)
 		wall_shape.shape = wall_rect
 		wall.add_child(wall_shape)
-		wall.position = Vector2(side * PIT_WIDTH / 2.0, PIT_HEIGHT / 2.0)
+		wall.position = Vector2(side * GameData.PIT_WIDTH / 2.0, GameData.PIT_HEIGHT / 2.0)
 		_world.add_child(wall)
 
 	_balls_container = Node2D.new()
@@ -71,7 +67,7 @@ func _build_world() -> void:
 func _build_claw() -> void:
 	_claw = ClawRig.new()
 	_claw.position = Vector2.ZERO
-	_claw.move_bounds = Vector2(-PIT_WIDTH / 2.0 + 30.0, PIT_WIDTH / 2.0 - 30.0)
+	_claw.move_bounds = Vector2(-GameData.PIT_WIDTH / 2.0 + 30.0, GameData.PIT_WIDTH / 2.0 - 30.0)
 	_claw.balls_container = _balls_container
 	_claw.grabbed.connect(func(_b): _status_label.text = "Grabbed one!")
 	_claw.missed.connect(func(): _status_label.text = "Missed... try again!")
@@ -84,8 +80,8 @@ func _build_balls() -> void:
 		var ball := PrizeBall.new()
 		ball.color = Color.from_hsv(randf(), 0.55, 0.9)
 		ball.position = Vector2(
-			randf_range(-PIT_WIDTH / 2.0 + 40.0, PIT_WIDTH / 2.0 - 40.0),
-			randf_range(PIT_HEIGHT - 150.0, PIT_HEIGHT - 30.0)
+			randf_range(-GameData.PIT_WIDTH / 2.0 + 40.0, GameData.PIT_WIDTH / 2.0 - 40.0),
+			randf_range(GameData.PIT_HEIGHT - 150.0, GameData.PIT_HEIGHT - 30.0)
 		)
 		_balls_container.add_child(ball)
 

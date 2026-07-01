@@ -57,15 +57,20 @@ const STARTING_COINS := 0
 
 
 # --- CLAW PHYSICS (playground) -----------------------------------------------
-# Tuning for the physics-based claw prototype (claw/physics_playground.gd).
-# Nothing here talks to coins/prizes yet — it's just movement/grab feel.
+# Tuning for the physics-based claw prototype (claw/physics_playground.gd and
+# the headless tests in tests/). Nothing here talks to coins/prizes yet — it's
+# just movement/grab feel. Kept as one shared source so the tests can build
+# the same pit the real game does, instead of duplicating these numbers.
+const PIT_WIDTH := 600.0            # px, inside width of the pit
+const PIT_HEIGHT := 420.0           # px, floor position measured from the ceiling
+const CEILING_Y := 40.0             # px, where the claw carriage rides
 const CLAW_MOVE_SPEED := 220.0      # px/sec, horizontal carriage speed
 const CLAW_DROP_SPEED := 260.0      # px/sec, descending speed
 const CLAW_RISE_SPEED := 200.0      # px/sec, ascending speed
 const CLAW_MAX_DROP_DEPTH := 380.0  # px, how far the arm can extend down.
                                      # Balls settle near PIT_HEIGHT - 10 - BALL_RADIUS
-                                     # (~392, see physics_playground.gd); keep this
-                                     # within CLAW_GRAB_RADIUS + BALL_RADIUS of that.
+                                     # (~392); keep this within CLAW_GRAB_RADIUS +
+                                     # BALL_RADIUS of that so a resting ball is reachable.
 const CLAW_GRAB_RADIUS := 26.0      # px, reach of the grab area at the claw tip
 const BALL_RADIUS := 18.0           # px
 const BALL_COUNT := 8               # how many balls sit in the pit at once

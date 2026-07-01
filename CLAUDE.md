@@ -23,6 +23,8 @@ small, readable, and quick to try.
   GameState. Being superseded by the physics claw below — see Pivot note.
 - `main.gd` — TEMPORARY code-built test UI for the OLD idle game. Currently
   not the active scene (see Pivot note); kept around, not deleted.
+- `tests/` — headless GDScript regression tests. No editor, no human, no UI;
+  see "Testing" below.
 
 ### Physics claw (in progress — replacing the idle mechanic)
 The game is pivoting from a dice-roll idle mechanic to a real physics-based
@@ -63,6 +65,20 @@ into `GameState`/coins/collection, (c) retire the old dice-roll
 - Keep scripts small and single-purpose.
 - Save/load is non-negotiable and already wired — don't regress it.
 
+## Testing
+- `tests/run_headless.sh` runs every `tests/*_test.tscn` scene against a real
+  Godot binary with `--headless` — no GUI, no manual clicking. It finds a
+  Godot binary via `$GODOT`, then `godot4`/`godot` on PATH, then a cached copy
+  in `tests/.godot-bin/` (gitignored), downloading one there if none exist.
+- A test scene is a plain `Node2D` script: build the same physics setup the
+  real game uses (reusing `GameData` constants, never re-hardcoding pit/ball
+  numbers), drive it exactly like a player would (`ClawRig.start_drop()`,
+  etc.), then `get_tree().quit(0)` on pass / `quit(1)` on fail. See
+  `tests/grab_regression_test.gd` for the pattern.
+- These tests catch physics/logic regressions (a grab that no longer reaches
+  a ball, a script error, a crash). They do NOT tell you whether something
+  feels good to play — that still needs a human with the real editor open.
+
 ## Roadmap (build one small, self-contained feature per session)
 1. ~~Auto-claw~~ — superseded: the claw is now player-driven physics, not an
    auto-repeating `attempt_grab()` roll. See "Physics claw" above instead.
@@ -77,3 +93,16 @@ into `GameState`/coins/collection, (c) retire the old dice-roll
 ## Notes for the assistant
 - Verify Godot 4.x API specifics against current docs rather than assuming.
 - See `README.md` for setup steps; don't duplicate it here.
+- **Cloud/web sessions have no Godot editor GUI and no pre-installed Godot
+  binary.** You can still validate changes without the user: download the
+  matching Linux Godot build (check `project.godot`'s `config/features` for
+  the version, e.g. `4.7`) from GitHub releases, run
+  `--headless --path . --import` once to build the class cache, then either
+  smoke-test the real scene (`--headless --path . --quit-after N`, check
+  stderr for `SCRIPT ERROR`/`ERROR`) or run `tests/run_headless.sh`. The
+  downloaded binary is a build tool, not project content — don't commit it;
+  either let it live in a scratch dir or in the gitignored
+  `tests/.godot-bin/` the test runner already uses.
+- What headless runs can't tell you: whether a change *feels* good (drop
+  speed, grab fairness, "cozy-ness"). Flag those for the user to try locally
+  with the real editor rather than declaring them done yourself.
