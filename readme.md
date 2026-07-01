@@ -60,3 +60,37 @@ what lets you (or an AI) rewrite the whole look without touching the rules.
 - **The coin tornado:** wrap `add_coins` payouts in a particle burst once the
   numbers get big. (Save this kind of juice for after the systems feel right.)
 - **Prestige/reset layer:** much later.
+
+## Deploying to an Android tablet
+
+One-time host setup (already done on this machine, July 2026):
+
+- JDK 17 (`brew install openjdk@17`) and the Android SDK cmdline-tools
+  (`brew install --cask android-commandlinetools`), with `platform-tools`,
+  `build-tools;35.0.1`, and `platforms;android-35` installed via `sdkmanager`.
+- The standalone `godot` cask (not `godot-mono`) matching this project's
+  engine version (4.7) — the project has no C#, so the plain build avoids
+  needing a .NET SDK just to export.
+- A debug keystore and the Android/Java SDK paths registered in Godot's
+  global Editor Settings (`export/android/*`), and an `Android` export
+  preset checked into [`export_presets.cfg`](export_presets.cfg).
+- `~/.zshrc` exports `ANDROID_HOME` and puts `adb` on `PATH` — open a new
+  terminal (or `source ~/.zshrc`) to pick that up. `JAVA_HOME` is
+  deliberately *not* set globally: Godot's own Editor Settings point straight
+  at the Homebrew JDK for exporting/signing, so a shell-wide `JAVA_HOME`
+  isn't needed — and would otherwise override tools like `mise` that manage a
+  different Java version per project.
+
+To build and install on the tablet:
+
+1. On the tablet: Settings → About tablet → tap **Build number** 7 times to
+   unlock Developer options, then Developer options → **USB debugging** on.
+2. Plug the tablet in over USB and accept the "Allow USB debugging" prompt
+   (or use `adb connect <tablet-ip>:5555` for wireless debugging instead).
+3. Run [`scripts/deploy_android.sh`](scripts/deploy_android.sh) from the
+   project root. Add `--launch` to also start the app, or `--logcat` to
+   start it and stream its log output.
+
+Re-run that script any time you want to try a change on the tablet — it
+re-exports a fresh debug APK and reinstalls it (`adb install -r`, so your
+save data on the device is preserved between installs).

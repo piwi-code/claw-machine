@@ -104,37 +104,58 @@ func _on_ball_collected(ball: Node) -> void:
 
 
 func _build_ui() -> void:
-	var root := VBoxContainer.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(root)
-
 	_status_label = Label.new()
 	_status_label.text = "Move the claw and press DROP!"
-	root.add_child(_status_label)
+	add_child(_status_label)
+	_status_label.top_level = true  # see _make_top_level_ui() doc comment
+	_status_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
 
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(spacer)
+	# Move buttons bottom-left and DROP bottom-right, both corner-anchored
+	# (rather than one centered bar) so each sits under a thumb when the
+	# tablet is held in both hands.
+	const CORNER_MARGIN := 32
 
-	var bottom_bar := HBoxContainer.new()
-	bottom_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	bottom_bar.add_theme_constant_override("separation", 24)
-	root.add_child(bottom_bar)
+	var move_bar := HBoxContainer.new()
+	move_bar.add_theme_constant_override("separation", 16)
 
 	var left_btn := _make_hold_button("<")
 	left_btn.button_down.connect(_on_left_button_down)
 	left_btn.button_up.connect(_on_left_button_up)
-	bottom_bar.add_child(left_btn)
-
-	var drop_btn := _make_hold_button("DROP")
-	drop_btn.custom_minimum_size = Vector2(160, 96)
-	drop_btn.pressed.connect(func(): _claw.start_drop())
-	bottom_bar.add_child(drop_btn)
+	move_bar.add_child(left_btn)
 
 	var right_btn := _make_hold_button(">")
 	right_btn.button_down.connect(_on_right_button_down)
 	right_btn.button_up.connect(_on_right_button_up)
-	bottom_bar.add_child(right_btn)
+	move_bar.add_child(right_btn)
+
+	_make_top_level_ui(move_bar)
+	move_bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, CORNER_MARGIN)
+
+	var drop_btn := _make_hold_button("DROP")
+	drop_btn.custom_minimum_size = Vector2(160, 96)
+	# PRESET_MODE_MINSIZE would size this from Control.get_minimum_size(),
+	# which for a plain Button is its own text/theme size and ignores
+	# custom_minimum_size (that's only folded in by get_combined_minimum_size,
+	# which the preset helper doesn't use) — so DROP would get anchored at
+	# ~53x31 instead of the 160x96 it's actually drawn at. Force the real size
+	# first and use KEEP_SIZE so the preset just anchors to it as-is.
+	drop_btn.size = drop_btn.custom_minimum_size
+	drop_btn.pressed.connect(func(): _claw.start_drop())
+	_make_top_level_ui(drop_btn)
+	drop_btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_KEEP_SIZE, CORNER_MARGIN)
+
+
+# Adds `control` as a top-level child of this Node2D. `top_level = true` makes
+# Godot anchor it against the real viewport instead of its parent's rect: a
+# Control's anchor offsets are baked via get_parent_anchorable_rect(), which
+# walks up to the nearest CanvasItem ancestor and calls its
+# get_anchorable_rect() — a method only Control overrides meaningfully.
+# Without top_level, that walk lands on this Node2D and hits CanvasItem's
+# stub implementation (always an empty Rect2), collapsing every anchor
+# preset — bottom-left, bottom-right, whatever — to the same (0, 0) point.
+func _make_top_level_ui(control: Control) -> void:
+	add_child(control)
+	control.top_level = true
 
 
 func _on_left_button_down() -> void:

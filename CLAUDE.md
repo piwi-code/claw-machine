@@ -124,3 +124,10 @@ replaces it as the shipped game mode.
 - What headless runs can't tell you: whether a change *feels* good (drop
   speed, grab fairness, "cozy-ness"). Flag those for the user to try locally
   with the real editor rather than declaring them done yourself.
+- **Android deploy is already set up on the dev machine** (JDK 17, Android
+  SDK cmdline-tools, export templates, debug keystore, `export_presets.cfg`)
+  — see the "Deploying to an Android tablet" section in `README.md`. Use
+  `scripts/deploy_android.sh` to build and reinstall on the tablet; don't
+  redo the toolchain setup from scratch. `godot --headless --export-debug
+  "Android" <path>` needs Project Settings' `textures/vram_compression/
+  import_etc2_astc` enabled (already on) or it refuses to export.
