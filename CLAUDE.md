@@ -58,14 +58,9 @@ Being built in small slices:
   `data/game_data.gd` under "CLAW PHYSICS (playground)", per the
   data-not-hard-coded convention.
 
-**Planned direction** (not yet built): rarer/better prizes could be visually
-distinct and physically harder to grab (heavier, smaller, more slippery), so
-`grip_strength` becomes a real physical property of the claw rather than a
-probability nudge. Also still open: the claw currently pays out balls in
-place rather than returning "home" and dropping them down a chute (mentioned
-as a likely future step, not built). Last item on the original list: retire
-the old dice-roll `attempt_grab()` path once the physics path fully
-replaces it as the shipped game mode.
+Planned next steps for this mechanic (grip_strength as a physical property,
+chute/return-home delivery, retiring the old dice-roll path) are tracked in
+`ROADMAP.md`, not here.
 
 ## Conventions
 - **Code-first, not editor-first.** Create nodes, connect signals, and define
@@ -97,16 +92,11 @@ replaces it as the shipped game mode.
   a ball, a script error, a crash). They do NOT tell you whether something
   feels good to play — that still needs a human with the real editor open.
 
-## Roadmap (build one small, self-contained feature per session)
-1. ~~Auto-claw~~ — superseded: the claw is now player-driven physics, not an
-   auto-repeating `attempt_grab()` roll. See "Physics claw" above instead.
-2. Offline progress: save already stores `last_played_unix`; award catch-up
-   coins on load.
-3. Collection album screen using `GameState.collection`.
-4. ~~Real cozy art + claw-lowering animation~~ — the physics claw slices above
-   are doing this now, incrementally, instead of one big art swap.
-5. Coin-shower / particle juice on big payouts.
-6. Prestige/reset layer (much later).
+## Roadmap
+
+See `ROADMAP.md` — don't duplicate its list here, keep it updated there
+instead (strike out items as they land, the way it already does for the
+auto-claw/art items superseded by the physics claw).
 
 ## Notes for the assistant
 - Verify Godot 4.x API specifics against current docs rather than assuming.

@@ -1,106 +1,65 @@
-# Claw Machine — MVP skeleton
+# Claw Machine
 
-A tiny, runnable starting point for a cozy claw-machine incremental game in
-Godot 4 (GDScript). The full loop works on day one: **drop the claw → win a
-prize → earn coins → buy an upgrade → progress is saved.**
+A cozy 2D physics-based claw machine game, built in Godot 4 (GDScript) by a
+parent and their young daughter. Move the claw, drop it, and see what you
+grab — real physics decide whether you catch a prize, not a dice roll.
 
-## Files
+**[Play it in your browser](https://piwi-code.github.io/claw-machine/)**
 
-```
-data/game_data.gd      <- the "tweak the numbers" file (prizes, upgrades, tuning)
-autoload/game_state.gd <- single source of truth + save/load (an Autoload)
-claw/claw_machine.gd   <- the core grab logic
-main.gd                <- a throwaway test UI so it runs immediately
-```
+## Running it locally
 
-## Setup (about 5 minutes)
+Requires the [Godot 4.7](https://godotengine.org/download) editor. Clone the
+repo, open `project.godot`, press **Play**.
 
-1. Create a new **Godot 4.x** project. The **Compatibility** renderer is the
-   safe pick — it's the friendliest for Android tablets and for web later.
-2. Copy the four files above into your project, keeping the folder layout.
-3. Register the autoload: **Project → Project Settings → Globals** (the
-   *Autoload* tab). Set the path to `res://autoload/game_state.gd`, set the
-   node name to **`GameState`** (exact spelling matters), and click Add.
-   - You do **not** need to register `GameData` — `class_name GameData` makes
-     it globally available on its own.
-4. Make a main scene: **Scene → New Scene → User Interface** (root is a
-   `Control`). Attach `main.gd` to that root node. Save it as `main.tscn`.
-5. Set it as the run target: **Project → Project Settings → Application → Run →
-   Main Scene → `main.tscn`**.
-6. Press **Play**. Drop the claw!
+Controls: hold the on-screen `<`/`>` buttons (or arrow keys) to move the
+claw, then press **DROP** (or Space) to dive for a prize.
 
-## The data flow (worth holding in your head)
+See [`CLAUDE.md`](CLAUDE.md) for the project's architecture and how to run
+the headless regression test suite.
 
-```
-main.gd  --calls-->  claw.attempt_grab()
-claw_machine.gd  --updates-->  GameState (coins, collection)
-GameState  --emits signals-->  main.gd updates the labels
-GameState  --writes-->  user://save.json
-```
+## Deploying to an Android device
 
-Logic never reaches into the UI; it just emits a signal. That separation is
-what lets you (or an AI) rewrite the whole look without touching the rules.
+One-time host setup:
 
-## Where your daughter plugs in
+- Install JDK 17 and the Android SDK command-line tools — e.g. on macOS via
+  Homebrew: `brew install openjdk@17` and
+  `brew install --cask android-commandlinetools`. Then use that install's
+  `sdkmanager` to fetch `platform-tools`, `build-tools;35.0.1`, and
+  `platforms;android-35`.
+- Install a Godot 4.7 editor build matching this project. Use the standard
+  (non-Mono) build — this project has no C#, so a .NET-enabled build isn't
+  needed just to export.
+- In the editor's Editor Settings, point `export/android/java_sdk_path` and
+  `export/android/android_sdk_path` at the JDK and SDK installed above.
+  Godot will generate a debug keystore automatically the first time you
+  export, or you can point `export/android/debug_keystore` at one you
+  already have.
+- Put `adb` (from the SDK's `platform-tools`) on your `PATH`. There's no
+  need to also put the JDK on `PATH`/`JAVA_HOME` globally — Godot reads the
+  Editor Settings path above directly, which avoids clobbering a per-project
+  Java version manager (`mise`, `asdf`, etc.) you might already use.
 
-- **`game_data.gd` — the prizes.** She draws the plushies; swap each `"color"`
-  for the path to her artwork, and let her name them.
-- **`game_data.gd` — the numbers.** "Make the claw grabbier" = raise
-  `BASE_GRAB_CHANCE`. "Make the dragon rarer" = lower its `weight`. Press Play,
-  see the change. Safe to experiment — this file can't break the plumbing.
+To build and install on a device:
 
-## The natural next features (each is a small, self-contained session)
-
-- **Auto-claw (your first idle mechanic):** add a `Timer` that calls
-  `attempt_grab()` on its own; gate it behind a new upgrade in `game_data.gd`.
-- **Offline progress:** the save already stores `last_played_unix`. On load,
-  compare it to now and award some catch-up coins.
-- **Collection album:** you already track `GameState.collection` — give it a
-  real screen with the artwork.
-- **The coin tornado:** wrap `add_coins` payouts in a particle burst once the
-  numbers get big. (Save this kind of juice for after the systems feel right.)
-- **Prestige/reset layer:** much later.
-
-## Deploying to an Android tablet
-
-One-time host setup (already done on this machine, July 2026):
-
-- JDK 17 (`brew install openjdk@17`) and the Android SDK cmdline-tools
-  (`brew install --cask android-commandlinetools`), with `platform-tools`,
-  `build-tools;35.0.1`, and `platforms;android-35` installed via `sdkmanager`.
-- The standalone `godot` cask (not `godot-mono`) matching this project's
-  engine version (4.7) — the project has no C#, so the plain build avoids
-  needing a .NET SDK just to export.
-- A debug keystore and the Android/Java SDK paths registered in Godot's
-  global Editor Settings (`export/android/*`), and an `Android` export
-  preset checked into [`export_presets.cfg`](export_presets.cfg).
-- `~/.zshrc` exports `ANDROID_HOME` and puts `adb` on `PATH` — open a new
-  terminal (or `source ~/.zshrc`) to pick that up. `JAVA_HOME` is
-  deliberately *not* set globally: Godot's own Editor Settings point straight
-  at the Homebrew JDK for exporting/signing, so a shell-wide `JAVA_HOME`
-  isn't needed — and would otherwise override tools like `mise` that manage a
-  different Java version per project.
-
-To build and install on the tablet:
-
-1. On the tablet: Settings → About tablet → tap **Build number** 7 times to
-   unlock Developer options, then Developer options → **USB debugging** on.
-2. Plug the tablet in over USB and accept the "Allow USB debugging" prompt
-   (or use `adb connect <tablet-ip>:5555` for wireless debugging instead).
+1. On the device: Settings → About → tap **Build number** 7 times to unlock
+   Developer options, then Developer options → **USB debugging** on.
+2. Plug it in over USB and accept the "Allow USB debugging" prompt (or use
+   `adb connect <device-ip>:5555` for wireless debugging instead).
 3. Run [`scripts/deploy_android.sh`](scripts/deploy_android.sh) from the
    project root. Add `--launch` to also start the app, or `--logcat` to
    start it and stream its log output.
 
-Re-run that script any time you want to try a change on the tablet — it
-re-exports a fresh debug APK and reinstalls it (`adb install -r`, so your
-save data on the device is preserved between installs).
+Re-run that script any time you want to try a change on the device — it
+re-exports a fresh debug APK and reinstalls it (`adb install -r`, so save
+data on the device is preserved between installs).
 
 ## Building for the web
 
-A `Web` export preset is also checked into [`export_presets.cfg`](export_presets.cfg)
-(no extra host setup needed — the web export templates came bundled in the
-same download used for Android). Godot's web export won't run from a
-`file://` URL, so it needs to be served over plain HTTP:
+A `Web` export preset is checked into [`export_presets.cfg`](export_presets.cfg)
+(no extra host setup needed beyond the Godot editor itself — the web export
+templates come bundled with the same download used for Android). Godot's web
+export won't run from a `file://` URL, so it needs to be served over plain
+HTTP:
 
 ```
 scripts/build_web.sh --serve
@@ -108,4 +67,19 @@ scripts/build_web.sh --serve
 
 Then open `http://localhost:8060` in a browser. Leave off `--serve` to just
 produce `build/web/index.html` without starting a server (e.g. if you're
-serving it another way, or deploying the `build/web/` folder somewhere).
+serving it another way, or deploying the `build/web/` folder somewhere). The
+hosted version at the link above is built and deployed automatically by
+[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) on
+every push to `main`.
+
+## Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for what's planned next.
+
+## License
+
+Code is licensed under the [MIT License](LICENSE). That covers the GDScript
+and project files — it does not cover any original art, audio, or other
+creative assets added to the project (e.g. under `data/` or wherever hand-
+drawn prize artwork ends up), which remain all-rights-reserved unless stated
+otherwise.
