@@ -36,7 +36,6 @@ func _ready() -> void:
 	add_child(ball)
 
 	_claw = ClawRig.new()
-	_claw.balls_container = self
 	_claw.grabbed.connect(func(_b): _grabbed = true)
 	add_child(_claw)
 

@@ -6,18 +6,19 @@ class_name ClawRig
 ## Movement is locked while diving/rising, like a real claw machine. Grabbing
 ## is "kinematic carry": we freeze the ball and reparent it under the claw head,
 ## so it rides along for free via the normal node transform — no joints needed.
+## A grab isn't final until the claw is fully retracted — that's when
+## `collected` fires and the ball stops being this rig's concern.
 ##
-## Deliberately dumb about WHAT it grabs — that's for a later slice to decide
-## (see the physics claw notes in CLAUDE.md). This just moves and grabs.
+## Deliberately dumb about WHAT it grabs or what collecting means — that's for
+## the listener to decide (see the physics claw notes in CLAUDE.md).
 
 signal grabbed(ball: RigidBody2D)
-signal released(ball: RigidBody2D)
 signal missed()
+signal collected(ball: RigidBody2D)
 
 enum State { IDLE, DIVING, CLOSING, RISING }
 
 var move_bounds: Vector2 = Vector2(-300.0, 300.0)  # min/max local x for the carriage
-var balls_container: Node  # where released balls get reparented back to
 
 var state: State = State.IDLE
 var _move_direction: int = 0
@@ -71,12 +72,8 @@ func set_move_direction(direction: int) -> void:
 
 
 func start_drop() -> void:
-	if state != State.IDLE:
-		return
-	if _held_ball == null:
+	if state == State.IDLE:
 		state = State.DIVING
-	else:
-		_release_ball()
 
 
 func _physics_process(delta: float) -> void:
@@ -96,6 +93,10 @@ func _physics_process(delta: float) -> void:
 			_depth = maxf(_depth - GameData.CLAW_RISE_SPEED * delta, 0.0)
 			if _depth <= 0.0:
 				state = State.IDLE
+				if _held_ball != null:
+					var ball := _held_ball
+					_held_ball = null
+					collected.emit(ball)
 	_update_visuals()
 
 
@@ -123,13 +124,3 @@ func _attempt_grab() -> void:
 	best.global_position = _grab_area.global_position
 	best.reparent(_head, true)
 	grabbed.emit(best)
-
-
-func _release_ball() -> void:
-	if _held_ball == null:
-		return
-	var ball := _held_ball
-	_held_ball = null
-	ball.reparent(balls_container, true)
-	ball.freeze = false
-	released.emit(ball)
