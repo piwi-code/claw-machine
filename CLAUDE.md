@@ -131,3 +131,20 @@ replaces it as the shipped game mode.
   redo the toolchain setup from scratch. `godot --headless --export-debug
   "Android" <path>` needs Project Settings' `textures/vram_compression/
   import_etc2_astc` enabled (already on) or it refuses to export.
+- **A `Web` export preset also exists** in `export_presets.cfg` (see
+  "Building for the web" in `README.md`) — no extra host setup needed, the
+  web export templates came bundled with the Android ones. Use
+  `scripts/build_web.sh --serve` to export and serve it locally; it must be
+  loaded over `http://`, not `file://`. This is also the only way you (the
+  assistant) can actually *see* the game render and interact with it
+  yourself — via the Claude Preview tools pointed at the served build —
+  since you have no physical Android tablet. Useful for visually verifying
+  UI/layout changes before asking the user to redeploy to their tablet.
+- **Control nodes anchored under a `Node2D` scene root need `top_level =
+  true`** to anchor against the real viewport — otherwise `CanvasItem`'s
+  stub `get_anchorable_rect()` (which `Node2D` doesn't override) collapses
+  every anchor preset to `(0, 0)`. Learned the hard way positioning
+  `physics_playground.gd`'s on-screen buttons; see that file's `_build_ui()`
+  comments for the full explanation, including a second gotcha where
+  `set_anchors_and_offsets_preset()`'s `MINSIZE` mode reads a `Button`'s
+  *intrinsic* text size rather than its `custom_minimum_size`.

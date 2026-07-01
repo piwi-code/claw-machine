@@ -1,0 +1,84 @@
+name: Deploy web build to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+# Least-privilege token: only what actions/deploy-pages needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy in flight; don't cancel one mid-deploy.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: "4.7-stable"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot binary and export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot-bin
+          curl -sSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -oq /tmp/godot.zip -d ~/godot-bin
+          chmod +x "$HOME/godot-bin/Godot_v${GODOT_VERSION}_linux.x86_64"
+
+          mkdir -p ~/.local/share/godot/export_templates
+          curl -sSL -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -oq /tmp/templates.tpz -d /tmp/templates
+          # Godot's own template-folder naming is dotted (e.g. "4.7.stable"),
+          # not hyphenated like the release tag ("4.7-stable").
+          TEMPLATE_DIR_NAME="${GODOT_VERSION/-/.}"
+          rm -rf "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR_NAME"
+          mv /tmp/templates/templates "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR_NAME"
+
+      - name: Run regression tests
+        run: |
+          set -euo pipefail
+          export GODOT="$HOME/godot-bin/Godot_v${GODOT_VERSION}_linux.x86_64"
+          bash tests/run_headless.sh
+
+      - name: Export web build
+        run: |
+          set -euo pipefail
+          GODOT_BIN="$HOME/godot-bin/Godot_v${GODOT_VERSION}_linux.x86_64"
+          mkdir -p build/web
+          "$GODOT_BIN" --headless --path . --export-release "Web" build/web/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

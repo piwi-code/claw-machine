@@ -94,3 +94,18 @@ To build and install on the tablet:
 Re-run that script any time you want to try a change on the tablet — it
 re-exports a fresh debug APK and reinstalls it (`adb install -r`, so your
 save data on the device is preserved between installs).
+
+## Building for the web
+
+A `Web` export preset is also checked into [`export_presets.cfg`](export_presets.cfg)
+(no extra host setup needed — the web export templates came bundled in the
+same download used for Android). Godot's web export won't run from a
+`file://` URL, so it needs to be served over plain HTTP:
+
+```
+scripts/build_web.sh --serve
+```
+
+Then open `http://localhost:8060` in a browser. Leave off `--serve` to just
+produce `build/web/index.html` without starting a server (e.g. if you're
+serving it another way, or deploying the `build/web/` folder somewhere).
