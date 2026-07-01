@@ -15,3 +15,6 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# Godot binary auto-downloaded by tests/run_headless.sh, not project content
+tests/.godot-bin/

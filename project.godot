@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="claw-machine"
-run/main_scene="uid://do8vosmykb40x"
+run/main_scene="res://claw/physics_playground.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
