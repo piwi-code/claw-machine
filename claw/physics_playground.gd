@@ -20,6 +20,14 @@ var _claw: ClawRig
 var _balls_container: Node2D
 var _status_label: Label
 
+# Left/right can be held via keyboard AND the on-screen buttons at once, so we
+# track each source separately and combine them — releasing one shouldn't
+# cancel a direction the other source is still holding.
+var _key_left := false
+var _key_right := false
+var _button_left := false
+var _button_right := false
+
 
 func _ready() -> void:
 	# World-local (0,0) is the top-center of the pit. Node2D's own (0,0) is the
@@ -101,8 +109,8 @@ func _build_ui() -> void:
 	root.add_child(bottom_bar)
 
 	var left_btn := _make_hold_button("<")
-	left_btn.button_down.connect(func(): _claw.set_move_direction(-1))
-	left_btn.button_up.connect(func(): _claw.set_move_direction(0))
+	left_btn.button_down.connect(_on_left_button_down)
+	left_btn.button_up.connect(_on_left_button_up)
 	bottom_bar.add_child(left_btn)
 
 	var drop_btn := _make_hold_button("DROP")
@@ -111,13 +119,62 @@ func _build_ui() -> void:
 	bottom_bar.add_child(drop_btn)
 
 	var right_btn := _make_hold_button(">")
-	right_btn.button_down.connect(func(): _claw.set_move_direction(1))
-	right_btn.button_up.connect(func(): _claw.set_move_direction(0))
+	right_btn.button_down.connect(_on_right_button_down)
+	right_btn.button_up.connect(_on_right_button_up)
 	bottom_bar.add_child(right_btn)
+
+
+func _on_left_button_down() -> void:
+	_button_left = true
+	_update_move_direction()
+
+func _on_left_button_up() -> void:
+	_button_left = false
+	_update_move_direction()
+
+func _on_right_button_down() -> void:
+	_button_right = true
+	_update_move_direction()
+
+func _on_right_button_up() -> void:
+	_button_right = false
+	_update_move_direction()
 
 
 func _make_hold_button(label: String) -> Button:
 	var btn := Button.new()
 	btn.text = label
 	btn.custom_minimum_size = Vector2(96, 96)
+	# Keyboard input is handled ourselves in _unhandled_input; keeping focus off
+	# these buttons stops Godot's default Control navigation from stealing the
+	# arrow keys and stops Space from double-triggering a focused button.
+	btn.focus_mode = Control.FOCUS_NONE
 	return btn
+
+
+# --- Keyboard (desktop testing convenience alongside the on-screen buttons) --
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey):
+		return
+	var key_event := event as InputEventKey
+	match key_event.keycode:
+		KEY_LEFT:
+			_key_left = key_event.pressed
+			_update_move_direction()
+		KEY_RIGHT:
+			_key_right = key_event.pressed
+			_update_move_direction()
+		KEY_SPACE:
+			if key_event.pressed and not key_event.echo:
+				_claw.start_drop()
+
+
+func _update_move_direction() -> void:
+	var left := _key_left or _button_left
+	var right := _key_right or _button_right
+	if left and not right:
+		_claw.set_move_direction(-1)
+	elif right and not left:
+		_claw.set_move_direction(1)
+	else:
+		_claw.set_move_direction(0)
