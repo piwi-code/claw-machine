@@ -1,11 +1,15 @@
 extends Node2D
-## PHYSICS PLAYGROUND — slice 1 of the physics-based claw.
+## PHYSICS PLAYGROUND — slice 2 of the physics-based claw.
 ##
-## Pure movement/grab feel: hold left/right to slide the claw, press DROP to
-## dive, close, and rise. Balls are real RigidBody2D circles with gravity and
-## collision. There is NO scoring here on purpose — no coins, no prizes, no
-## GameState calls. That wiring is a deliberately separate later slice (see the
-## physics claw notes in CLAUDE.md) once this feels good to play with.
+## Hold left/right to slide the claw, press DROP to dive, close, and rise.
+## Balls are real RigidBody2D circles with gravity and collision, each rolled
+## a prize_id (weighted by rarity, same table as the old dice-roll game) when
+## it spawns — the dice-roll moved from "did you grab something" to "what's
+## in the pit", per the physics claw notes in CLAUDE.md.
+##
+## A grab only pays out once the claw is fully retracted (ClawRig's
+## `collected` signal). For now that's the whole "delivery" — no return-home
+## animation or chute yet, the ball is just removed and replaced.
 ##
 ## The old idle game (main.gd / main.tscn) is untouched and still works; this
 ## is just a new scene that project.godot currently points to instead.
@@ -68,22 +72,35 @@ func _build_claw() -> void:
 	_claw = ClawRig.new()
 	_claw.position = Vector2.ZERO
 	_claw.move_bounds = Vector2(-GameData.PIT_WIDTH / 2.0 + 30.0, GameData.PIT_WIDTH / 2.0 - 30.0)
-	_claw.balls_container = _balls_container
-	_claw.grabbed.connect(func(_b): _status_label.text = "Grabbed one!")
+	_claw.grabbed.connect(func(_b): _status_label.text = "Got it! Bringing it home...")
 	_claw.missed.connect(func(): _status_label.text = "Missed... try again!")
-	_claw.released.connect(func(_b): _status_label.text = "Dropped it.")
+	_claw.collected.connect(_on_ball_collected)
 	_world.add_child(_claw)
 
 
 func _build_balls() -> void:
 	for i in GameData.BALL_COUNT:
-		var ball := PrizeBall.new()
-		ball.color = Color.from_hsv(randf(), 0.55, 0.9)
-		ball.position = Vector2(
-			randf_range(-GameData.PIT_WIDTH / 2.0 + 40.0, GameData.PIT_WIDTH / 2.0 - 40.0),
-			randf_range(GameData.PIT_HEIGHT - 150.0, GameData.PIT_HEIGHT - 30.0)
-		)
-		_balls_container.add_child(ball)
+		_spawn_ball()
+
+
+func _spawn_ball() -> void:
+	var ball := PrizeBall.new()
+	ball.prize_id = GameState.pick_weighted_prize()
+	ball.position = Vector2(
+		randf_range(-GameData.PIT_WIDTH / 2.0 + 40.0, GameData.PIT_WIDTH / 2.0 - 40.0),
+		randf_range(GameData.PIT_HEIGHT - 150.0, GameData.PIT_HEIGHT - 30.0)
+	)
+	_balls_container.add_child(ball)
+
+
+func _on_ball_collected(ball: Node) -> void:
+	var prize_ball := ball as PrizeBall
+	var coins_awarded := GameState.award_prize(prize_ball.prize_id)
+	var prize_name: String = GameData.PRIZES[prize_ball.prize_id]["name"]
+	_status_label.text = "Won a %s! +%d coins" % [prize_name, coins_awarded]
+
+	ball.queue_free()
+	_spawn_ball()
 
 
 func _build_ui() -> void:

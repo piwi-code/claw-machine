@@ -21,28 +21,8 @@ func attempt_grab() -> Dictionary:
 		GameState.grab_failed.emit()
 		return { "success": false }
 
-	# We caught something — pick which prize, weighted by rarity.
-	var prize_id := _pick_weighted_prize()
-	var prize: Dictionary = GameData.PRIZES[prize_id]
-	var coins_awarded := int(round(prize["value"] * GameState.get_coin_multiplier()))
-
-	GameState.register_prize(prize_id)
-	GameState.add_coins(coins_awarded)
-	GameState.save_game()
+	# We caught something — pick which prize, weighted by rarity, and award it.
+	var prize_id := GameState.pick_weighted_prize()
+	var coins_awarded := GameState.award_prize(prize_id)
 
 	return { "success": true, "prize_id": prize_id, "coins_awarded": coins_awarded }
-
-
-# Picks a random prize id, respecting each prize's "weight" (rarity).
-func _pick_weighted_prize() -> String:
-	var total_weight := 0
-	for id in GameData.PRIZES:
-		total_weight += GameData.PRIZES[id]["weight"]
-
-	var roll := randi() % total_weight
-	var cumulative := 0
-	for id in GameData.PRIZES:
-		cumulative += GameData.PRIZES[id]["weight"]
-		if roll < cumulative:
-			return id
-	return GameData.PRIZES.keys()[0]  # fallback — shouldn't be reached

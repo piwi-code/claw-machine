@@ -42,6 +42,31 @@ func register_prize(prize_id: String) -> void:
 	prize_won.emit(prize_id, GameData.PRIZES[prize_id])
 
 
+# --- Prize picking / awarding -------------------------------------------------
+# Shared by every claw mechanic (dice-roll and physics), so "which prize" and
+# "what happens when you win one" stay identical no matter how the grab itself
+# gets decided.
+func pick_weighted_prize() -> String:
+	var total_weight := 0
+	for id in GameData.PRIZES:
+		total_weight += GameData.PRIZES[id]["weight"]
+
+	var roll := randi() % total_weight
+	var cumulative := 0
+	for id in GameData.PRIZES:
+		cumulative += GameData.PRIZES[id]["weight"]
+		if roll < cumulative:
+			return id
+	return GameData.PRIZES.keys()[0]  # fallback — shouldn't be reached
+
+func award_prize(prize_id: String) -> int:
+	var coins_awarded := int(round(GameData.PRIZES[prize_id]["value"] * get_coin_multiplier()))
+	register_prize(prize_id)
+	add_coins(coins_awarded)
+	save_game()
+	return coins_awarded
+
+
 # --- Derived values (computed in ONE place, so the claw and the UI agree) ---
 # When you add a new upgrade in game_data.gd, this is where you wire up what it
 # actually does. Add a getter like the two below and read it where it matters.

@@ -29,31 +29,43 @@ small, readable, and quick to try.
 ### Physics claw (in progress — replacing the idle mechanic)
 The game is pivoting from a dice-roll idle mechanic to a real physics-based
 claw: move it left/right, drop it, and whether you actually grab a ball is
-simulated (Godot 2D physics), not rolled. Being built in small slices:
-- `claw/physics_playground.gd` (+ `.tscn`) — **Slice 1, done.** Pure movement
-  and grab feel: on-screen hold-left/hold-right + a big DROP button, real
-  RigidBody2D balls with gravity/collision, kinematic "carry" grab (freeze +
-  reparent under the claw head, no joints). Deliberately has NO scoring —
-  no coins, no prizes, no GameState calls. This is currently `project.godot`'s
-  `run/main_scene`, so pressing Play loads it instead of the old idle UI.
+simulated (Godot 2D physics), not rolled. The dice-roll didn't disappear, it
+moved — instead of rolling for grab *success*, it now rolls when *populating
+the machine* with which prize each ball is (`GameState.pick_weighted_prize()`).
+Being built in small slices:
+- `claw/physics_playground.gd` (+ `.tscn`) — **Slices 1 & 2, done.** On-screen
+  hold-left/hold-right + a big DROP button; real RigidBody2D balls with
+  gravity/collision; kinematic "carry" grab (freeze + reparent under the claw
+  head, no joints). Each ball is rolled a `prize_id` when it spawns. A grab
+  pays out through `GameState` once the claw is fully retracted (see
+  `ClawRig.collected` below) — for now that's the whole "delivery": the ball
+  is removed and a fresh one spawns in its place. No return-home animation or
+  chute yet. This is currently `project.godot`'s `run/main_scene`.
 - `claw/claw_rig.gd` — class `ClawRig`. The carriage/arm/pincer state machine
-  (IDLE / DIVING / CLOSING / RISING) and grab detection. Emits `grabbed`,
-  `missed`, `released` signals — same "logic emits, UI listens" convention.
-- `claw/prize_ball.gd` — class `PrizeBall`. Placeholder RigidBody2D circle
-  (flat-color `_draw()`), no art yet.
+  (IDLE / DIVING / CLOSING / RISING) and grab detection. Emits `grabbed`
+  (caught something, still mid-air), `missed`, and `collected` (fully
+  retracted with a ball — this is the "it's yours now" moment). Stays
+  economy-agnostic on purpose — it doesn't know about prizes or coins, only
+  physics; the listener decides what collecting means.
+- `claw/prize_ball.gd` — class `PrizeBall`. Placeholder RigidBody2D circle;
+  `prize_id` drives both its payout (`GameData.PRIZES`) and its color, so
+  rarer prizes already look different even before real art exists.
+- `GameState.pick_weighted_prize()` / `GameState.award_prize(prize_id)` —
+  shared by both the old dice-roll (`ClawMachine.attempt_grab()`) and the
+  physics claw, so "which prize" and "what winning one does" can't drift
+  apart between the two mechanics.
 - Physics tuning (speeds, drop depth, ball size/count) lives in
   `data/game_data.gd` under "CLAW PHYSICS (playground)", per the
   data-not-hard-coded convention.
 
-**Planned direction** (not yet built): the dice-roll doesn't disappear, it
-moves — instead of rolling for grab *success*, it rolls when *populating the
-machine* with which balls are in the pit. Rarer/better prizes could be
-visually distinct and physically harder to grab (heavier, smaller, more
-slippery), so `grip_strength` becomes a real physical property of the claw
-rather than a probability nudge. Next slices (in rough order): (a) give balls
-a `prize_id` + distinct look/physics per rarity, (b) wire a successful grab
-into `GameState`/coins/collection, (c) retire the old dice-roll
-`attempt_grab()` path once the physics path fully replaces it.
+**Planned direction** (not yet built): rarer/better prizes could be visually
+distinct and physically harder to grab (heavier, smaller, more slippery), so
+`grip_strength` becomes a real physical property of the claw rather than a
+probability nudge. Also still open: the claw currently pays out balls in
+place rather than returning "home" and dropping them down a chute (mentioned
+as a likely future step, not built). Last item on the original list: retire
+the old dice-roll `attempt_grab()` path once the physics path fully
+replaces it as the shipped game mode.
 
 ## Conventions
 - **Code-first, not editor-first.** Create nodes, connect signals, and define
@@ -74,7 +86,13 @@ into `GameState`/coins/collection, (c) retire the old dice-roll
   real game uses (reusing `GameData` constants, never re-hardcoding pit/ball
   numbers), drive it exactly like a player would (`ClawRig.start_drop()`,
   etc.), then `get_tree().quit(0)` on pass / `quit(1)` on fail. See
-  `tests/grab_regression_test.gd` for the pattern.
+  `tests/grab_regression_test.gd` (raw `ClawRig` + `PrizeBall`) and
+  `tests/collect_regression_test.gd` (loads the real `physics_playground.tscn`
+  to exercise the production `GameState` wiring) for the two patterns.
+- `run_headless.sh` runs every test under a throwaway `$HOME`, since Godot
+  resolves `user://` (i.e. `save.json`) under `$HOME` for a plain build —
+  any test touching `GameState` would otherwise read/overwrite your real
+  save file.
 - These tests catch physics/logic regressions (a grab that no longer reaches
   a ball, a script error, a crash). They do NOT tell you whether something
   feels good to play — that still needs a human with the real editor open.

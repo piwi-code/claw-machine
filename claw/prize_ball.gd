@@ -1,9 +1,10 @@
 extends RigidBody2D
 class_name PrizeBall
-## A physics ball sitting in the claw machine pit. Placeholder art — just a
-## flat colored circle — until real prize sprites exist.
+## A physics ball sitting in the claw machine pit. `prize_id` decides both
+## what it pays out (GameData.PRIZES) and its placeholder look — a flat
+## colored circle until real prize sprites exist.
 
-var color: Color = Color(0.9, 0.6, 0.3)
+var prize_id: String = ""
 
 
 func _ready() -> void:
@@ -22,4 +23,5 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	var color: Color = GameData.PRIZES.get(prize_id, {}).get("color", Color.WHITE)
 	draw_circle(Vector2.ZERO, GameData.BALL_RADIUS, color)

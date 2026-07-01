@@ -6,6 +6,10 @@
 # cached under tests/.godot-bin/ (gitignored), downloading it there if none
 # of those exist yet. That makes this work the same on a fresh clone, in CI,
 # or in a cloud session with no Godot pre-installed.
+#
+# Runs every test with a throwaway $HOME, since Godot resolves user:// (i.e.
+# save.json) under $HOME for a plain, non-sandboxed build. Without this, any
+# test that touches GameState would read and overwrite your real save file.
 set -euo pipefail
 
 GODOT_VERSION="4.7-stable"
@@ -33,6 +37,11 @@ else
 fi
 
 echo "Using Godot binary: $GODOT_BIN"
+
+TEST_HOME="$(mktemp -d)"
+trap 'rm -rf "$TEST_HOME"' EXIT
+export HOME="$TEST_HOME"
+
 "$GODOT_BIN" --headless --path "$PROJECT_DIR" --import
 
 status=0
