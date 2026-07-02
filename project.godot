@@ -14,6 +14,10 @@ config/name="claw-machine"
 run/main_scene="res://claw/physics_playground.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.10980392, 0.12156863, 0.14901961, 1)
+boot_splash/image="res://assets/branding/molten_unicorn_splash.png"
+boot_splash/stretch_mode=0
+boot_splash/use_filter=true
 
 [autoload]
 
