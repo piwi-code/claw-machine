@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="claw-machine"
-run/main_scene="res://claw/physics_playground.tscn"
+run/main_scene="res://menu/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 boot_splash/bg_color=Color(0.10980392, 0.12156863, 0.14901961, 1)

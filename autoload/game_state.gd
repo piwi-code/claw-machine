@@ -97,6 +97,20 @@ func can_afford_upgrade(id: String) -> bool:
 		return false
 	return coins >= get_upgrade_cost(id)
 
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+# Used by the main menu's "New Game" — wipes progress back to defaults and
+# saves immediately, so the old save is gone the moment the player confirms
+# rather than lingering until the next coin/prize triggers a write.
+func reset_game() -> void:
+	coins = GameData.STARTING_COINS
+	upgrade_levels = {}
+	collection = {}
+	total_grabs = 0
+	save_game()
+
+
 func buy_upgrade(id: String) -> bool:
 	if not can_afford_upgrade(id):
 		return false

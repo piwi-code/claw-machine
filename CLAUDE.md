@@ -23,6 +23,10 @@ small, readable, and quick to try.
   GameState. Being superseded by the physics claw below — see Pivot note.
 - `main.gd` — TEMPORARY code-built test UI for the OLD idle game. Currently
   not the active scene (see Pivot note); kept around, not deleted.
+- `menu/main_menu.gd` (+ `.tscn`) — the game's entry point, `project.godot`'s
+  `run/main_scene`. Continue vs New Game: Continue only shows when
+  `GameState.has_save()` is true; New Game confirms (it's destructive) before
+  calling `GameState.reset_game()` and loading the physics playground.
 - `tests/` — headless GDScript regression tests. No editor, no human, no UI;
   see "Testing" below.
 
@@ -40,7 +44,8 @@ Being built in small slices:
   pays out through `GameState` once the claw is fully retracted (see
   `ClawRig.collected` below) — for now that's the whole "delivery": the ball
   is removed and a fresh one spawns in its place. No return-home animation or
-  chute yet. This is currently `project.godot`'s `run/main_scene`.
+  chute yet. Reached from `menu/main_menu.gd` (Continue or New Game), which is
+  now `project.godot`'s `run/main_scene`.
 - `claw/claw_rig.gd` — class `ClawRig`. The carriage/arm/pincer state machine
   (IDLE / DIVING / CLOSING / RISING) and grab detection. Emits `grabbed`
   (caught something, still mid-air), `missed`, and `collected` (fully
