@@ -46,6 +46,14 @@ func _build_ui() -> void:
 		start_btn.pressed.connect(_start_new_game)
 		button_column.add_child(start_btn)
 
+	# Quitting a web build means closing the browser tab, not the game — and
+	# browsers block scripted tab-close anyway — so there's nothing useful for
+	# this button to do there. Desktop/Android windows can actually exit.
+	if not OS.has_feature("web"):
+		var exit_btn := _make_menu_button("Exit")
+		exit_btn.pressed.connect(_on_exit_pressed)
+		button_column.add_child(exit_btn)
+
 
 func _make_menu_button(text: String) -> Button:
 	var btn := Button.new()
@@ -70,3 +78,7 @@ func _on_new_game_pressed() -> void:
 func _start_new_game() -> void:
 	GameState.reset_game()
 	get_tree().change_scene_to_file(PLAYGROUND_SCENE)
+
+
+func _on_exit_pressed() -> void:
+	get_tree().quit()

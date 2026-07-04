@@ -26,7 +26,9 @@ small, readable, and quick to try.
 - `menu/main_menu.gd` (+ `.tscn`) — the game's entry point, `project.godot`'s
   `run/main_scene`. Continue vs New Game: Continue only shows when
   `GameState.has_save()` is true; New Game confirms (it's destructive) before
-  calling `GameState.reset_game()` and loading the physics playground.
+  calling `GameState.reset_game()` and loading the physics playground. Also
+  has an Exit button, hidden on web (`OS.has_feature("web")`) since closing
+  a browser tab isn't the game's call to make.
 - `tests/` — headless GDScript regression tests. No editor, no human, no UI;
   see "Testing" below.
 
