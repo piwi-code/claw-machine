@@ -6,44 +6,55 @@
 # checked-in source of truth to copy from, so it's versioned and reviewable
 # instead of living only in a UI text box.
 #
-# Requires the environment's Network access set to Custom, with
-# downloads.tuxfamily.org in Allowed domains (Godot's real download host —
-# github.com release downloads don't work from a cloud session, since GitHub
-# traffic goes through a separate, repo-scoped proxy independent of the
-# Network access domain list; see CLAUDE.md).
+# Downloads from Godot's official SourceForge mirror
+# (sourceforge.net/projects/godot-engine.mirror). That host is on Claude
+# Code's DEFAULT "Trusted" network allowlist, so this works without any
+# custom Allowed domains. (Don't switch it to github.com releases — GitHub
+# traffic goes through a separate repo-scoped proxy, so godotengine release
+# downloads 403 regardless of network settings. downloads.tuxfamily.org,
+# Godot's old host, is defunct — it 503s; see CLAUDE.md.)
 #
 # Installs the Godot editor binary to /usr/local/bin/godot4 (so
 # tests/run_headless.sh and scripts/build_web.sh find it on PATH with no
-# extra config) and the matching export templates, so `--export-debug "Web"`
-# works too. Runs the two downloads in parallel to help stay under the
-# environment's ~5 minute setup script budget. Keep GODOT_VERSION in sync
-# with project.godot's config/features.
+# extra config) and, from the 1.3 GB all-platform template pack, just the
+# web export templates, so `--export-debug "Web"` works too. Keep
+# GODOT_VERSION in sync with project.godot's config/features.
 set -euo pipefail
 
 GODOT_VERSION="4.7-stable"
 TEMPLATE_DIR="4.7.stable"   # Godot's own <version>.<status> export-templates folder naming
-BASE_URL="https://downloads.tuxfamily.org/godotengine/4.7"
+BASE_URL="https://downloads.sourceforge.net/project/godot-engine.mirror/${GODOT_VERSION}"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-(
-	curl -fsSL -o "$TMP/godot.zip" "$BASE_URL/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
-	unzip -oq "$TMP/godot.zip" -d "$TMP"
-	install -m 755 "$TMP/Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot4
-) &
-install_bin_pid=$!
+# Fetch the checksum list first, then verify both downloads against it.
+curl -fsSL -o "$TMP/SHA512-SUMS.txt" "$BASE_URL/SHA512-SUMS.txt"
 
 (
-	curl -fsSL -o "$TMP/templates.tpz" "$BASE_URL/Godot_v${GODOT_VERSION}_export_templates.tpz"
-	mkdir -p "$TMP/templates_extract"
-	unzip -oq "$TMP/templates.tpz" -d "$TMP/templates_extract"
-	mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR"
-	mv "$TMP/templates_extract/templates/"* "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR/"
+	curl -fsSL -o "$TMP/Godot_v${GODOT_VERSION}_linux.x86_64.zip" "$BASE_URL/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
 ) &
-install_templates_pid=$!
+bin_pid=$!
 
-wait "$install_bin_pid"
-wait "$install_templates_pid"
+(
+	curl -fsSL -o "$TMP/Godot_v${GODOT_VERSION}_export_templates.tpz" "$BASE_URL/Godot_v${GODOT_VERSION}_export_templates.tpz"
+) &
+templates_pid=$!
+
+wait "$bin_pid"
+wait "$templates_pid"
+
+cd "$TMP"
+grep -E "linux\.x86_64\.zip|export_templates\.tpz" SHA512-SUMS.txt | sha512sum -c -
+
+unzip -oq "Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+install -m 755 "Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot4
+
+# The .tpz is a zip of templates for every platform; extract only the web
+# ones (the whole pack unpacked is huge and Android/iOS/desktop templates
+# aren't useful in a cloud session).
+mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR"
+unzip -oqj "Godot_v${GODOT_VERSION}_export_templates.tpz" "templates/web_*" \
+	-d "$HOME/.local/share/godot/export_templates/$TEMPLATE_DIR"
 
 godot4 --version

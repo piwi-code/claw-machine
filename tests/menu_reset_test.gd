@@ -4,12 +4,17 @@ extends Node2D
 ##
 ## Runs synchronously in _ready(): no physics to settle, so there's no need
 ## to wait a frame. tests/run_headless.sh runs this under a throwaway $HOME,
-## so it never touches the real save file.
+## so it never touches the real save file — but that $HOME is shared by every
+## test in the run, and tests that award prizes save, so an existing save
+## here is normal. Start by deleting it so has_save() is tested from a known
+## clean state.
 
 
 func _ready() -> void:
 	if GameState.has_save():
-		_finish(false, "FAIL: fresh $HOME should have no save yet")
+		DirAccess.open("user://").remove(GameState.SAVE_PATH.get_file())
+	if GameState.has_save():
+		_finish(false, "FAIL: could not clear the save left by earlier tests")
 		return
 
 	GameState.add_coins(50)
