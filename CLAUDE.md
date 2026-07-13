@@ -118,6 +118,30 @@ auto-claw/art items superseded by the physics claw).
   downloaded binary is a build tool, not project content — don't commit it;
   either let it live in a scratch dir or in the gitignored
   `tests/.godot-bin/` the test runner already uses.
+- **A session's GitHub access is scoped to whichever repos it's connected
+  to** (see the "Repository Scope" note surfaced at session start) — `github
+  .com` traffic goes through a separate, repo-scoped proxy that's independent
+  of the environment's Network access setting, so a plain `curl` to a GitHub
+  Releases URL for an unrelated repo (like `godotengine/godot`) gets a 403
+  even under "Full" network access. Don't retry that or try to add the repo
+  as a source just to fetch a release binary — it won't help, and forking it
+  wouldn't either (GitHub Releases assets aren't copied to forks; you'd be
+  signing up to compile Godot from source, which needs SCons + a C++
+  toolchain + Emscripten for the Web target — heavy and unnecessary).
+- **A dedicated cloud environment can have Godot pre-installed instead of
+  downloaded per-session.** `scripts/godot_cloud_setup.sh` is the checked-in
+  copy of a Setup script to paste into that environment's config (Setup
+  scripts are configured in the environment dialog, not a repo file, and
+  their output is cached, unlike a SessionStart hook's). It installs from
+  `downloads.tuxfamily.org` — Godot's real release host, a plain HTTPS
+  destination with no GitHub proxy involved — so it needs that environment's
+  Network access set to Custom with `downloads.tuxfamily.org` allowed (or
+  Full). `.claude/hooks/session-start.sh` (registered in `.claude/
+  settings.json`) is the complementary SessionStart hook: it doesn't install
+  anything itself, just reports whether a Godot binary is already on PATH or
+  cached under `tests/.godot-bin/`, so a missing binary shows up as a clear
+  message at session start instead of a confusing failure deep in some later
+  command.
 - What headless runs can't tell you: whether a change *feels* good (drop
   speed, grab fairness, "cozy-ness"). Flag those for the user to try locally
   with the real editor rather than declaring them done yourself.
