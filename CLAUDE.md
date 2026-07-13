@@ -23,6 +23,12 @@ small, readable, and quick to try.
   GameState. Being superseded by the physics claw below — see Pivot note.
 - `main.gd` — TEMPORARY code-built test UI for the OLD idle game. Currently
   not the active scene (see Pivot note); kept around, not deleted.
+- `menu/main_menu.gd` (+ `.tscn`) — the game's entry point, `project.godot`'s
+  `run/main_scene`. Continue vs New Game: Continue only shows when
+  `GameState.has_save()` is true; New Game confirms (it's destructive) before
+  calling `GameState.reset_game()` and loading the physics playground. Also
+  has an Exit button, hidden on web (`OS.has_feature("web")`) since closing
+  a browser tab isn't the game's call to make.
 - `tests/` — headless GDScript regression tests. No editor, no human, no UI;
   see "Testing" below.
 
@@ -40,7 +46,8 @@ Being built in small slices:
   pays out through `GameState` once the claw is fully retracted (see
   `ClawRig.collected` below) — for now that's the whole "delivery": the ball
   is removed and a fresh one spawns in its place. No return-home animation or
-  chute yet. This is currently `project.godot`'s `run/main_scene`.
+  chute yet. Reached from `menu/main_menu.gd` (Continue or New Game), which is
+  now `project.godot`'s `run/main_scene`.
 - `claw/claw_rig.gd` — class `ClawRig`. The carriage/arm/pincer state machine
   (IDLE / DIVING / CLOSING / RISING) and grab detection. Emits `grabbed`
   (caught something, still mid-air), `missed`, and `collected` (fully
@@ -111,6 +118,30 @@ auto-claw/art items superseded by the physics claw).
   downloaded binary is a build tool, not project content — don't commit it;
   either let it live in a scratch dir or in the gitignored
   `tests/.godot-bin/` the test runner already uses.
+- **A session's GitHub access is scoped to whichever repos it's connected
+  to** (see the "Repository Scope" note surfaced at session start) — `github
+  .com` traffic goes through a separate, repo-scoped proxy that's independent
+  of the environment's Network access setting, so a plain `curl` to a GitHub
+  Releases URL for an unrelated repo (like `godotengine/godot`) gets a 403
+  even under "Full" network access. Don't retry that or try to add the repo
+  as a source just to fetch a release binary — it won't help, and forking it
+  wouldn't either (GitHub Releases assets aren't copied to forks; you'd be
+  signing up to compile Godot from source, which needs SCons + a C++
+  toolchain + Emscripten for the Web target — heavy and unnecessary).
+- **A dedicated cloud environment can have Godot pre-installed instead of
+  downloaded per-session.** `scripts/godot_cloud_setup.sh` is the checked-in
+  copy of a Setup script to paste into that environment's config (Setup
+  scripts are configured in the environment dialog, not a repo file, and
+  their output is cached, unlike a SessionStart hook's). It installs from
+  `downloads.tuxfamily.org` — Godot's real release host, a plain HTTPS
+  destination with no GitHub proxy involved — so it needs that environment's
+  Network access set to Custom with `downloads.tuxfamily.org` allowed (or
+  Full). `.claude/hooks/session-start.sh` (registered in `.claude/
+  settings.json`) is the complementary SessionStart hook: it doesn't install
+  anything itself, just reports whether a Godot binary is already on PATH or
+  cached under `tests/.godot-bin/`, so a missing binary shows up as a clear
+  message at session start instead of a confusing failure deep in some later
+  command.
 - What headless runs can't tell you: whether a change *feels* good (drop
   speed, grab fairness, "cozy-ness"). Flag those for the user to try locally
   with the real editor rather than declaring them done yourself.
