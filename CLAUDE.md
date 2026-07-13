@@ -109,38 +109,47 @@ auto-claw/art items superseded by the physics claw).
 - Verify Godot 4.x API specifics against current docs rather than assuming.
 - See `README.md` for setup steps; don't duplicate it here.
 - **Cloud/web sessions have no Godot editor GUI and no pre-installed Godot
-  binary.** You can still validate changes without the user: download the
-  matching Linux Godot build (check `project.godot`'s `config/features` for
-  the version, e.g. `4.7`) from GitHub releases, run
-  `--headless --path . --import` once to build the class cache, then either
-  smoke-test the real scene (`--headless --path . --quit-after N`, check
-  stderr for `SCRIPT ERROR`/`ERROR`) or run `tests/run_headless.sh`. The
-  downloaded binary is a build tool, not project content — don't commit it;
-  either let it live in a scratch dir or in the gitignored
-  `tests/.godot-bin/` the test runner already uses.
-- **A session's GitHub access is scoped to whichever repos it's connected
-  to** (see the "Repository Scope" note surfaced at session start) — `github
-  .com` traffic goes through a separate, repo-scoped proxy that's independent
-  of the environment's Network access setting, so a plain `curl` to a GitHub
-  Releases URL for an unrelated repo (like `godotengine/godot`) gets a 403
-  even under "Full" network access. Don't retry that or try to add the repo
-  as a source just to fetch a release binary — it won't help, and forking it
-  wouldn't either (GitHub Releases assets aren't copied to forks; you'd be
-  signing up to compile Godot from source, which needs SCons + a C++
-  toolchain + Emscripten for the Web target — heavy and unnecessary).
+  binary — but you can download one.** Use Godot's official SourceForge
+  mirror (`downloads.sourceforge.net/project/godot-engine.mirror/<version>/
+  ...`, checksums in that folder's `SHA512-SUMS.txt`): `sourceforge.net` is
+  on Claude Code's default "Trusted" network allowlist, so it works even in
+  a stock environment. Two hosts that look more official do NOT work, so
+  don't burn time on them: GitHub Releases URLs 403 because `github.com`
+  traffic goes through a separate repo-scoped proxy (independent of the
+  Network access setting; adding `godotengine/godot` as a source is
+  cross-owner and rejected, and forks don't carry release assets), and
+  `downloads.tuxfamily.org` — Godot's old host, cited in older docs — is
+  defunct (503s). Match the version to `project.godot`'s `config/features`
+  (e.g. `4.7` → `4.7-stable`), then run `--headless --path . --import` once
+  to build the class cache, then smoke-test the real scene
+  (`--headless --path . --quit-after N`, check stderr for `SCRIPT ERROR`/
+  `ERROR`) or run `tests/run_headless.sh` (its auto-download uses this same
+  mirror). The binary is a build tool, not project content — don't commit
+  it; keep it in a scratch dir or the gitignored `tests/.godot-bin/`.
+- **You can SEE and drive the web build yourself**: grab the export
+  templates from the same mirror folder (`*_export_templates.tpz` — 1.3 GB,
+  but you only need the `templates/web_*` members; `unzip -j` them into
+  `~/.local/share/godot/export_templates/<version>.stable/`), export with
+  `scripts/build_web.sh`, serve it, and drive it with Playwright
+  (`playwright-core` + the pre-installed Chromium; take screenshots, click
+  buttons by coordinates). The Web preset has `thread_support=false`, so a
+  plain `python3 -m http.server` works — no COOP/COEP headers needed. This
+  catches "wrong scene loads"/"button missing" wiring bugs that headless
+  tests can't, though game *feel* still needs a human (see below).
 - **A dedicated cloud environment can have Godot pre-installed instead of
   downloaded per-session.** `scripts/godot_cloud_setup.sh` is the checked-in
   copy of a Setup script to paste into that environment's config (Setup
   scripts are configured in the environment dialog, not a repo file, and
-  their output is cached, unlike a SessionStart hook's). It installs from
-  `downloads.tuxfamily.org` — Godot's real release host, a plain HTTPS
-  destination with no GitHub proxy involved — so it needs that environment's
-  Network access set to Custom with `downloads.tuxfamily.org` allowed (or
-  Full). `.claude/hooks/session-start.sh` (registered in `.claude/
-  settings.json`) is the complementary SessionStart hook: it doesn't install
-  anything itself, just reports whether a Godot binary is already on PATH or
-  cached under `tests/.godot-bin/`, so a missing binary shows up as a clear
-  message at session start instead of a confusing failure deep in some later
+  their output is cached as an environment snapshot, unlike a SessionStart
+  hook's — so the ~1.4 GB of downloads happens once, not per session). It
+  installs the editor binary to `/usr/local/bin/godot4` plus the web export
+  templates, from the SourceForge mirror above — on the default Trusted
+  allowlist, so the environment needs no custom Allowed domains.
+  `.claude/hooks/session-start.sh` (registered in `.claude/settings.json`)
+  is the complementary SessionStart hook: it doesn't install anything
+  itself, just reports whether a Godot binary is already on PATH or cached
+  under `tests/.godot-bin/`, so a missing binary shows up as a clear message
+  at session start instead of a confusing failure deep in some later
   command.
 - What headless runs can't tell you: whether a change *feels* good (drop
   speed, grab fairness, "cozy-ness"). Flag those for the user to try locally

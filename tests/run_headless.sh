@@ -29,8 +29,11 @@ elif [ -x "$CACHED_BIN" ]; then
 else
 	echo "No Godot found; downloading $GODOT_VERSION into $CACHE_DIR ..."
 	mkdir -p "$CACHE_DIR"
+	# Godot's official SourceForge mirror — works both locally and in Claude
+	# Code cloud sessions (GitHub release URLs 403 there: GitHub traffic goes
+	# through a repo-scoped proxy; and downloads.tuxfamily.org is defunct).
 	curl -sSL -o "$CACHE_DIR/godot.zip" \
-		"https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+		"https://downloads.sourceforge.net/project/godot-engine.mirror/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
 	unzip -oq "$CACHE_DIR/godot.zip" -d "$CACHE_DIR"
 	chmod +x "$CACHED_BIN"
 	GODOT_BIN="$CACHED_BIN"
