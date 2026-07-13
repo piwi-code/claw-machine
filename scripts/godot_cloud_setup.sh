@@ -45,7 +45,10 @@ wait "$bin_pid"
 wait "$templates_pid"
 
 cd "$TMP"
-grep -E "linux\.x86_64\.zip|export_templates\.tpz" SHA512-SUMS.txt | sha512sum -c -
+# Match the exact filenames: SHA512-SUMS.txt also lists the mono builds
+# (Godot_v4.7-stable_mono_export_templates.tpz), which a loose substring
+# match pulls in — and sha512sum -c then fails on the never-downloaded file.
+grep -E "  Godot_v${GODOT_VERSION}_(linux\.x86_64\.zip|export_templates\.tpz)$" SHA512-SUMS.txt | sha512sum -c -
 
 unzip -oq "Godot_v${GODOT_VERSION}_linux.x86_64.zip"
 install -m 755 "Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot4
