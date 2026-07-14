@@ -74,3 +74,43 @@ const CLAW_MAX_DROP_DEPTH := 380.0  # px, how far the arm can extend down.
 const CLAW_GRAB_RADIUS := 26.0      # px, reach of the grab area at the claw tip
 const BALL_RADIUS := 18.0           # px
 const BALL_COUNT := 8               # how many balls sit in the pit at once
+
+
+# --- UI SKIN (arcade pastel) --------------------------------------------------
+# Colors and style numbers lifted from the "Game Screen — Arcade Pastel" design
+# in the Claude Design project (screens/game-screen.html). Change a color here,
+# press Play, and the game repaints — nothing visual is hard-coded in scripts.
+const UI_FONT := "res://assets/fonts/fredoka_semibold.ttf"
+const PRIZE_TOAST_SECONDS := 2.5    # how long the "you won!" note lingers
+
+const SKIN := {
+	# background: soft top-to-bottom pastel sky, warm floor strip
+	"bg_colors": [Color("f6d9e6"), Color("e9d3f2"), Color("cdeaf0"), Color("bfe6da")],
+	"bg_offsets": [0.0, 0.38, 0.72, 1.0],
+	"floor_top": Color("fef2df"),
+	"floor_bottom": Color("fbe3c2"),
+	"floor_height": 130.0,
+
+	# cabinet / pit hardware purple
+	"cabinet": Color("8f7cc9"),
+
+	# round arrow buttons (mint)
+	"arrow_bg": Color("bff0da"),
+	"arrow_edge": Color("8fd8b4"),
+	"arrow_text": Color("4d7a63"),
+
+	# big DROP button (coral)
+	"drop_bg": Color("ff9e83"),
+	"drop_edge": Color("e07659"),
+	"drop_text": Color("7a3521"),
+
+	# cream pills: coin counter + prize toast
+	"pill_bg": Color("fff8ec"),
+	"pill_edge": Color("ecd9b0"),
+	"pill_text": Color("7a5a20"),
+	"coin_fill": Color("ffd76a"),
+	"coin_edge": Color("f0b93c"),
+
+	# status text over the pastel background
+	"status_text": Color("5a4670"),
+}
