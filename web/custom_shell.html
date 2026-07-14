@@ -26,13 +26,10 @@ body {
 	outline: none;
 }
 
-#status, #status-splash, #status-progress {
+#status {
 	position: absolute;
 	left: 0;
 	right: 0;
-}
-
-#status, #status-splash {
 	top: 0;
 	bottom: 0;
 }
@@ -47,9 +44,13 @@ body {
 }
 
 #status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
+	/* In flex flow (not absolute) so the progress bar can sit BELOW it in the
+	   column instead of overlapping it on short/landscape phone screens. */
+	max-height: 80%;
+	max-width: 90%;
+	margin: 0;
+	object-fit: contain;
+	min-height: 0;
 }
 
 #status-splash.show-image--false {
@@ -57,8 +58,8 @@ body {
 }
 
 #status-splash.fullsize--true {
-	height: 100%;
 	width: 100%;
+	flex: 1 1 auto; /* fill spare height but shrink so the bar keeps its row */
 	object-fit: contain;
 }
 
@@ -70,15 +71,35 @@ body {
 	display: none;
 }
 
-/* Molten Unicorn branding: gold loading bar instead of the browser default. */
+/* Molten Unicorn branding: gold loading bar instead of the browser default.
+   A normal flex item below the splash image — never overlaps it. */
 #status-progress {
-	bottom: 10%;
 	width: 50%;
-	margin: 0 auto;
+	max-width: 420px;
+	margin-top: 28px;
 	height: 8px;
 	border: none;
 	border-radius: 999px;
 	accent-color: #f2a93b;
+}
+
+/* While the page is portrait, nudge the player toward landscape. The in-game
+   overlay (autoload/screen_guard.gd) takes over once the engine is running;
+   this covers the loading phase before that. */
+#rotate-hint {
+	display: none;
+	margin-top: 24px;
+	padding: 0 2rem;
+	font-family: Georgia, 'Times New Roman', serif;
+	font-size: 18px;
+	color: #f2d5a0;
+	text-align: center;
+}
+
+@media (orientation: portrait) {
+	#rotate-hint {
+		display: block;
+	}
 }
 
 #status-progress::-webkit-progress-bar {
@@ -124,6 +145,7 @@ body {
 		<div id="status">
 			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
 			<progress id="status-progress"></progress>
+			<div id="rotate-hint">Turn your device sideways to play&nbsp;🔄</div>
 			<div id="status-notice"></div>
 		</div>
 
