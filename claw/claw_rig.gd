@@ -33,7 +33,7 @@ var _arm_line: Line2D
 func _ready() -> void:
 	_arm_line = Line2D.new()
 	_arm_line.width = 4.0
-	_arm_line.default_color = Color(0.4, 0.4, 0.45)
+	_arm_line.default_color = GameData.SKIN["cabinet"]
 	_arm_line.points = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 	add_child(_arm_line)
 
@@ -62,7 +62,7 @@ func _make_pincer(side: int) -> Polygon2D:
 		Vector2(side * r * 0.9, r * 0.9),
 		Vector2(side * r * 0.4, r * 1.1),
 	])
-	poly.color = Color(0.75, 0.75, 0.8)
+	poly.color = GameData.SKIN["cabinet"]
 	return poly
 
 
