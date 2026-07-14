@@ -22,9 +22,11 @@ boot_splash/use_filter=true
 [autoload]
 
 GameState="*uid://dtcit4mxtnt0c"
+ScreenGuard="*res://autoload/screen_guard.gd"
 
 [display]
 
+window/handheld/orientation=4
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
