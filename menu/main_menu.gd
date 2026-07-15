@@ -11,6 +11,7 @@ const PLAYGROUND_SCENE := "res://claw/physics_playground.tscn"
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	UISkin.build_background(self)
 	_build_ui()
 
 
@@ -20,29 +21,30 @@ func _build_ui() -> void:
 	add_child(center)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 24)
+	column.add_theme_constant_override("separation", 28)
 	center.add_child(column)
 
-	var title := Label.new()
-	title.text = "Claw Machine"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 48)
-	column.add_child(title)
+	column.add_child(_make_marquee_title("Claw Machine"))
 
 	var button_column := VBoxContainer.new()
-	button_column.add_theme_constant_override("separation", 12)
+	button_column.add_theme_constant_override("separation", 14)
 	column.add_child(button_column)
 
+	# The most likely tap is coral (primary), alternatives are mint, and the
+	# low-stakes Exit is quiet cream — same language as the game's buttons.
 	if GameState.has_save():
 		var continue_btn := _make_menu_button("Continue")
+		UISkin.style_primary_button(continue_btn)
 		continue_btn.pressed.connect(_on_continue_pressed)
 		button_column.add_child(continue_btn)
 
 		var new_game_btn := _make_menu_button("New Game")
+		UISkin.style_secondary_button(new_game_btn)
 		new_game_btn.pressed.connect(_on_new_game_pressed)
 		button_column.add_child(new_game_btn)
 	else:
 		var start_btn := _make_menu_button("New Game")
+		UISkin.style_primary_button(start_btn)
 		start_btn.pressed.connect(_start_new_game)
 		button_column.add_child(start_btn)
 
@@ -51,14 +53,40 @@ func _build_ui() -> void:
 	# this button to do there. Desktop/Android windows can actually exit.
 	if not OS.has_feature("web"):
 		var exit_btn := _make_menu_button("Exit")
+		UISkin.style_quiet_button(exit_btn)
 		exit_btn.pressed.connect(_on_exit_pressed)
 		button_column.add_child(exit_btn)
+
+
+# The design's marquee badge (the "CLAW & CO." sign): pink pill, thick white
+# border, white Fredoka text.
+func _make_marquee_title(text: String) -> PanelContainer:
+	var skin: Dictionary = GameData.SKIN
+	var badge := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = skin["marquee_bg"]
+	style.border_color = skin["marquee_border"]
+	style.set_border_width_all(5)
+	style.set_corner_radius_all(24)
+	style.content_margin_left = 36
+	style.content_margin_right = 36
+	style.content_margin_top = 12
+	style.content_margin_bottom = 14
+	badge.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UISkin.style_label(label, 44, skin["marquee_text"])
+	badge.add_child(label)
+	return badge
 
 
 func _make_menu_button(text: String) -> Button:
 	var btn := Button.new()
 	btn.text = text
 	btn.custom_minimum_size = Vector2(240, 64)
+	btn.focus_mode = Control.FOCUS_NONE
 	return btn
 
 
@@ -68,11 +96,11 @@ func _on_continue_pressed() -> void:
 
 # New Game is destructive when a save exists, so confirm before wiping it.
 func _on_new_game_pressed() -> void:
-	var dialog := ConfirmationDialog.new()
-	dialog.dialog_text = "Start a new game? This erases your current coins and collection."
+	var dialog := SkinConfirmDialog.new()
+	dialog.message = "Start a new game? This erases your current coins and collection."
+	dialog.confirm_text = "Start over!"
 	dialog.confirmed.connect(_start_new_game)
 	add_child(dialog)
-	dialog.popup_centered()
 
 
 func _start_new_game() -> void:
