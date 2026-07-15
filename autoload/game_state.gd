@@ -27,6 +27,11 @@ var collection: Dictionary = {}       # { "teddy": 7, "bunny": 2, ... } — how 
 var total_grabs: int = 0
 var last_played_unix: int = 0         # used later for offline/away progress
 
+# --- Transient run summary (deliberately NOT saved) ---------------------------
+# The physics claw sets this at the end of every run so the shop screen can
+# show "last run: +N coins". -1 means no run has finished since launch.
+var last_run_coins: int = -1
+
 
 func _ready() -> void:
 	load_game()
@@ -108,6 +113,7 @@ func reset_game() -> void:
 	upgrade_levels = {}
 	collection = {}
 	total_grabs = 0
+	last_run_coins = -1
 	save_game()
 
 

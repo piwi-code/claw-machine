@@ -63,7 +63,10 @@ const STARTING_COINS := 0
 # the same pit the real game does, instead of duplicating these numbers.
 const PIT_WIDTH := 600.0            # px, inside width of the pit
 const PIT_HEIGHT := 420.0           # px, floor position measured from the ceiling
-const CEILING_Y := 40.0             # px, where the claw carriage rides
+const CEILING_Y := 100.0            # px, where the claw carriage rides — keep
+                                     # it below the timer bar strip at the top
+                                     # of the screen or the idle claw hides
+                                     # behind the bar
 const CLAW_MOVE_SPEED := 220.0      # px/sec, horizontal carriage speed
 const CLAW_DROP_SPEED := 260.0      # px/sec, descending speed
 const CLAW_RISE_SPEED := 200.0      # px/sec, ascending speed
@@ -73,7 +76,18 @@ const CLAW_MAX_DROP_DEPTH := 380.0  # px, how far the arm can extend down.
                                      # BALL_RADIUS of that so a resting ball is reachable.
 const CLAW_GRAB_RADIUS := 26.0      # px, reach of the grab area at the claw tip
 const BALL_RADIUS := 18.0           # px
-const BALL_COUNT := 8               # how many balls sit in the pit at once
+const BALL_COUNT := 24              # how many balls fill the pit at the start of a run
+
+
+# --- CLAW RUN (the shop <-> machine loop) -------------------------------------
+# One "run" = one timed go at the machine: the pit fills with BALL_COUNT random
+# balls, the timer bar drains over RUN_SECONDS, and the run ends when time runs
+# out, the pit is cleared, or the player presses END. These live here (not in
+# the playground script) so shop power-ups can eventually modify them — more
+# time, more balls, better prize odds.
+const RUN_SECONDS := 20.0           # length of one claw run
+const RUN_END_PAUSE_SECONDS := 3.0  # how long the "run over" sign shows before
+                                     # returning to the shop
 
 
 # --- UI SKIN (arcade pastel) --------------------------------------------------
