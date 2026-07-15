@@ -26,9 +26,16 @@ small, readable, and quick to try.
 - `menu/main_menu.gd` (+ `.tscn`) — the game's entry point, `project.godot`'s
   `run/main_scene`. Continue vs New Game: Continue only shows when
   `GameState.has_save()` is true; New Game confirms (it's destructive) before
-  calling `GameState.reset_game()` and loading the physics playground. Also
-  has an Exit button, hidden on web (`OS.has_feature("web")`) since closing
-  a browser tab isn't the game's call to make.
+  calling `GameState.reset_game()`. Both lead to the shop screen, not
+  straight into the machine. Also has an Exit button, hidden on web
+  (`OS.has_feature("web")`) since closing a browser tab isn't the game's
+  call to make.
+- `shop/shop_screen.gd` (+ `.tscn`) — the hub of the game loop
+  (menu → shop → claw run → shop → …). Shows total coins, the collection
+  tally (all read from `GameState`, nothing recomputed), and a transient
+  "last run: +N coins" line (`GameState.last_run_coins`, not saved). PLAY
+  starts a claw run; Menu returns to the main menu. Shop power-up purchases
+  will live here later (see `ROADMAP.md`).
 - `tests/` — headless GDScript regression tests. No editor, no human, no UI;
   see "Testing" below.
 
@@ -39,15 +46,19 @@ simulated (Godot 2D physics), not rolled. The dice-roll didn't disappear, it
 moved — instead of rolling for grab *success*, it now rolls when *populating
 the machine* with which prize each ball is (`GameState.pick_weighted_prize()`).
 Being built in small slices:
-- `claw/physics_playground.gd` (+ `.tscn`) — **Slices 1 & 2, done.** On-screen
+- `claw/physics_playground.gd` (+ `.tscn`) — **Slices 1–3, done.** On-screen
   hold-left/hold-right + a big DROP button; real RigidBody2D balls with
   gravity/collision; kinematic "carry" grab (freeze + reparent under the claw
   head, no joints). Each ball is rolled a `prize_id` when it spawns. A grab
   pays out through `GameState` once the claw is fully retracted (see
-  `ClawRig.collected` below) — for now that's the whole "delivery": the ball
-  is removed and a fresh one spawns in its place. No return-home animation or
-  chute yet. Reached from `menu/main_menu.gd` (Continue or New Game), which is
-  now `project.godot`'s `run/main_scene`.
+  `ClawRig.collected` below); collected balls are NOT replaced. The scene is
+  one timed RUN (slice 3): the pit fills with `GameData.BALL_COUNT` balls, a
+  timer bar drains over `GameData.RUN_SECONDS` (an END button on the bar
+  quits early), and the run ends on timeout / pit cleared / END — a dive
+  already in motion gets to finish. Then a "run over" marquee shows for
+  `GameData.RUN_END_PAUSE_SECONDS` and the game returns to the shop screen,
+  which is also what launches this scene. No return-home animation or chute
+  yet.
 - `claw/claw_rig.gd` — class `ClawRig`. The carriage/arm/pincer state machine
   (IDLE / DIVING / CLOSING / RISING) and grab detection. Emits `grabbed`
   (caught something, still mid-air), `missed`, and `collected` (fully

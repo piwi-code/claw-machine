@@ -19,3 +19,8 @@ Build one small, self-contained feature per session.
    in place; it should instead carry it back "home" and drop it down a chute.
 9. Retire the old dice-roll `claw/claw_machine.gd` (`attempt_grab()`) path
    once the physics claw fully replaces it as the shipped game mode.
+10. Shop power-ups that bend the claw run: more time (`RUN_SECONDS`), more
+    balls (`BALL_COUNT`), and prize-odds boosts (base weights + purchased
+    multipliers deciding what fills the pit). The shop screen exists and the
+    run reads those numbers from `game_data.gd`, so each power-up is "add an
+    upgrade block + a GameState getter + read it where the run starts".

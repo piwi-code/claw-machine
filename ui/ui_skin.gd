@@ -92,6 +92,58 @@ static func style_quiet_button(btn: Button, font_size: int = 26) -> void:
 	style_button(btn, skin["pill_bg"], skin["pill_edge"], skin["pill_text"], font_size)
 
 
+## The design's marquee badge (the "CLAW & CO." sign): pink pill, thick white
+## border, white Fredoka text. Used for the menu title, the shop title, and
+## the end-of-run sign.
+static func make_marquee_title(text: String, font_size: int = 44) -> PanelContainer:
+	var skin: Dictionary = GameData.SKIN
+	var badge := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = skin["marquee_bg"]
+	style.border_color = skin["marquee_border"]
+	style.set_border_width_all(5)
+	style.set_corner_radius_all(24)
+	style.content_margin_left = 36
+	style.content_margin_right = 36
+	style.content_margin_top = 12
+	style.content_margin_bottom = 14
+	badge.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	style_label(label, font_size, skin["marquee_text"])
+	badge.add_child(label)
+	return badge
+
+
+## Coin-counter pill: gold coin circle + amount. Returns {"pill": PanelContainer,
+## "label": Label} so callers that need live updates can keep the label.
+static func make_coin_pill(amount: int, font_size: int = 24) -> Dictionary:
+	var skin: Dictionary = GameData.SKIN
+	var pill := make_pill()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	pill.add_child(row)
+
+	var coin := Panel.new()
+	coin.custom_minimum_size = Vector2(34, 34)
+	coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var coin_style := StyleBoxFlat.new()
+	coin_style.bg_color = skin["coin_fill"]
+	coin_style.border_color = skin["coin_edge"]
+	coin_style.set_border_width_all(4)
+	coin_style.set_corner_radius_all(999)  # circle
+	coin.add_theme_stylebox_override("panel", coin_style)
+	row.add_child(coin)
+
+	var label := Label.new()
+	label.text = str(amount)
+	style_label(label, font_size, skin["pill_text"])
+	row.add_child(label)
+	return {"pill": pill, "label": label}
+
+
 ## Cream rounded pill (coin counter, prize toast, dialog panels).
 static func make_pill() -> PanelContainer:
 	var skin: Dictionary = GameData.SKIN

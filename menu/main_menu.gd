@@ -2,11 +2,12 @@ extends Control
 ## MAIN MENU — the game's entry point.
 ##
 ## Shows "Continue" only when a save already exists; "New Game" wipes
-## GameState back to defaults (with a confirmation, since that's destructive)
-## and starts the same scene fresh. Built entirely in code, per the
-## code-first convention in CLAUDE.md.
+## GameState back to defaults (with a confirmation, since that's destructive).
+## Both lead to the shop screen — the hub of the shop <-> claw-run loop —
+## not straight into the machine. Built entirely in code, per the code-first
+## convention in CLAUDE.md.
 
-const PLAYGROUND_SCENE := "res://claw/physics_playground.tscn"
+const SHOP_SCENE := "res://shop/shop_screen.tscn"
 
 
 func _ready() -> void:
@@ -24,7 +25,7 @@ func _build_ui() -> void:
 	column.add_theme_constant_override("separation", 28)
 	center.add_child(column)
 
-	column.add_child(_make_marquee_title("Claw Machine"))
+	column.add_child(UISkin.make_marquee_title("Claw Machine"))
 
 	var button_column := VBoxContainer.new()
 	button_column.add_theme_constant_override("separation", 14)
@@ -58,30 +59,6 @@ func _build_ui() -> void:
 		button_column.add_child(exit_btn)
 
 
-# The design's marquee badge (the "CLAW & CO." sign): pink pill, thick white
-# border, white Fredoka text.
-func _make_marquee_title(text: String) -> PanelContainer:
-	var skin: Dictionary = GameData.SKIN
-	var badge := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = skin["marquee_bg"]
-	style.border_color = skin["marquee_border"]
-	style.set_border_width_all(5)
-	style.set_corner_radius_all(24)
-	style.content_margin_left = 36
-	style.content_margin_right = 36
-	style.content_margin_top = 12
-	style.content_margin_bottom = 14
-	badge.add_theme_stylebox_override("panel", style)
-
-	var label := Label.new()
-	label.text = text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UISkin.style_label(label, 44, skin["marquee_text"])
-	badge.add_child(label)
-	return badge
-
-
 func _make_menu_button(text: String) -> Button:
 	var btn := Button.new()
 	btn.text = text
@@ -91,7 +68,7 @@ func _make_menu_button(text: String) -> Button:
 
 
 func _on_continue_pressed() -> void:
-	get_tree().change_scene_to_file(PLAYGROUND_SCENE)
+	get_tree().change_scene_to_file(SHOP_SCENE)
 
 
 # New Game is destructive when a save exists, so confirm before wiping it.
@@ -105,7 +82,7 @@ func _on_new_game_pressed() -> void:
 
 func _start_new_game() -> void:
 	GameState.reset_game()
-	get_tree().change_scene_to_file(PLAYGROUND_SCENE)
+	get_tree().change_scene_to_file(SHOP_SCENE)
 
 
 func _on_exit_pressed() -> void:
