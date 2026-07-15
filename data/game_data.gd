@@ -113,4 +113,9 @@ const SKIN := {
 
 	# status text over the pastel background
 	"status_text": Color("5a4670"),
+
+	# marquee badge (menu title / machine sign)
+	"marquee_bg": Color("ff9ec4"),
+	"marquee_border": Color("ffffff"),
+	"marquee_text": Color("ffffff"),
 }
