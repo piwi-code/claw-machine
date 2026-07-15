@@ -213,8 +213,10 @@ func _build_ui() -> void:
 	var skin: Dictionary = GameData.SKIN
 
 	# The timer bar spans the very top; everything else in the top strip
-	# (status text, coin HUD) shifts down below it by this much.
-	const TIMER_BAR_CLEARANCE := 56
+	# (status text, coin HUD) shifts down below it by this much. Snug on
+	# purpose: the status line has to fit between the bar and the idle claw
+	# riding at GameData.CEILING_Y.
+	const TIMER_BAR_CLEARANCE := 44
 
 	_build_timer_bar(16)
 

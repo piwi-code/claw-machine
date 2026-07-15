@@ -63,7 +63,10 @@ const STARTING_COINS := 0
 # the same pit the real game does, instead of duplicating these numbers.
 const PIT_WIDTH := 600.0            # px, inside width of the pit
 const PIT_HEIGHT := 420.0           # px, floor position measured from the ceiling
-const CEILING_Y := 40.0             # px, where the claw carriage rides
+const CEILING_Y := 100.0            # px, where the claw carriage rides — keep
+                                     # it below the timer bar strip at the top
+                                     # of the screen or the idle claw hides
+                                     # behind the bar
 const CLAW_MOVE_SPEED := 220.0      # px/sec, horizontal carriage speed
 const CLAW_DROP_SPEED := 260.0      # px/sec, descending speed
 const CLAW_RISE_SPEED := 200.0      # px/sec, ascending speed
