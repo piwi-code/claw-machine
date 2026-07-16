@@ -67,7 +67,19 @@ Being built in small slices:
   physics; the listener decides what collecting means.
 - `claw/prize_ball.gd` — class `PrizeBall`. Placeholder RigidBody2D circle;
   `prize_id` drives both its payout (`GameData.PRIZES`) and its color, so
-  rarer prizes already look different even before real art exists.
+  rarer prizes already look different even before real art exists. A prize may
+  carry an optional `"effect"` in its data block, which the playground acts on
+  when the ball is collected (see below).
+- `claw/oil_overlay.gd` — class `OilOverlay`. The dripping-oil sheet for the
+  special balls. The **Oil Ball** (`"effect": "oil"`) calls `splat()` — it
+  smears the glass darker (capped) and adds runny drips, stacking with each oil
+  ball for the REST of the run. The **Golden Ball** (`"effect": "shine"`) calls
+  `wipe_clean()` — clears the glass — and pays a jackpot via its big `value`.
+  The overlay keeps NO saved state and lives under the per-run `_world`, so a
+  new run (a fresh scene) always starts with clean glass. Feel knobs are in
+  `game_data.gd` under "SPECIAL BALLS". The effect *trigger* is data; what it
+  *means* lives in `physics_playground._on_ball_collected`, same split as the
+  rest of the physics claw.
 - `GameState.pick_weighted_prize()` / `GameState.award_prize(prize_id)` —
   shared by both the old dice-roll (`ClawMachine.attempt_grab()`) and the
   physics claw, so "which prize" and "what winning one does" can't drift

@@ -16,11 +16,21 @@ class_name GameData
 #
 # LATER: this is where your daughter's drawings go. Swap "color" for a texture
 # path to her artwork, and let her name each plushie.
+#
+# A prize may carry an optional "effect", which the physics claw acts on when
+# the ball is collected (see physics_playground._on_ball_collected):
+#   "oil"   — smears dripping oil across the glass for the rest of the run,
+#             making the pit hard to see. Gets worse with each oil ball.
+#   "shine" — wipes the glass clean again (undoes every oil ball) AND, thanks
+#             to its big "value", pays a jackpot. The good twin of the oil ball.
+# Ordinary prizes have no "effect" and just pay their coins.
 const PRIZES := {
-	"teddy":  { "name": "Teddy Bear",     "value": 5,  "weight": 60, "color": Color("c08552") },
-	"bunny":  { "name": "Floppy Bunny",   "value": 12, "weight": 25, "color": Color("e8c1c5") },
-	"ducky":  { "name": "Rubber Ducky",   "value": 20, "weight": 10, "color": Color("f4d35e") },
-	"dragon": { "name": "Sparkle Dragon", "value": 75, "weight": 5,  "color": Color("8ac7db") },
+	"teddy":  { "name": "Teddy Bear",     "value": 5,   "weight": 60, "color": Color("c08552") },
+	"bunny":  { "name": "Floppy Bunny",   "value": 12,  "weight": 25, "color": Color("e8c1c5") },
+	"ducky":  { "name": "Rubber Ducky",   "value": 20,  "weight": 10, "color": Color("f4d35e") },
+	"dragon": { "name": "Sparkle Dragon", "value": 75,  "weight": 5,  "color": Color("8ac7db") },
+	"black":  { "name": "Oil Ball",       "value": 15,  "weight": 8,  "color": Color("18181d"), "effect": "oil" },
+	"golden": { "name": "Golden Ball",    "value": 150, "weight": 3,  "color": Color("f4b400"), "effect": "shine" },
 }
 
 
@@ -88,6 +98,14 @@ const BALL_COUNT := 24              # how many balls fill the pit at the start o
 const RUN_SECONDS := 20.0           # length of one claw run
 const RUN_END_PAUSE_SECONDS := 3.0  # how long the "run over" sign shows before
                                      # returning to the shop
+
+
+# --- SPECIAL BALLS (oil / golden) --------------------------------------------
+# Feel knobs for the "oil" effect ball (see claw/oil_overlay.gd). The oil is
+# per-run only — it never touches GameState, so a fresh run starts clean.
+const OIL_FILM_PER_SPLAT := 0.45    # how much the whole glass darkens per oil ball
+const OIL_FILM_MAX := 0.85          # cap so the pit never goes fully black to see through
+const OIL_DRIPS_PER_SPLAT := 5      # runny streaks each oil ball adds
 
 
 # --- UI SKIN (arcade pastel) --------------------------------------------------

@@ -35,6 +35,7 @@ var _run_coins := 0  # winnings from THIS run only (totals live in GameState)
 var _world: Node2D
 var _claw: ClawRig
 var _balls_container: Node2D
+var _oil: OilOverlay
 var _status_label: Label
 var _timer_bar: ProgressBar
 
@@ -69,6 +70,7 @@ func _ready() -> void:
 	_build_world()
 	_build_claw()
 	_build_balls()
+	_build_oil()
 	_build_ui()
 
 
@@ -152,6 +154,15 @@ func _build_balls() -> void:
 		_spawn_ball()
 
 
+# The oil is added to _world AFTER the claw and balls so it draws on top of
+# them — the oil is on the glass, in front of the whole pit. It's a child of
+# the per-run world, so a fresh run (a new scene) always starts with clean
+# glass; nothing resets it explicitly.
+func _build_oil() -> void:
+	_oil = OilOverlay.new()
+	_world.add_child(_oil)
+
+
 func _spawn_ball() -> void:
 	var ball := PrizeBall.new()
 	ball.prize_id = GameState.pick_weighted_prize()
@@ -170,6 +181,18 @@ func _on_ball_collected(ball: Node) -> void:
 	_run_coins += coins_awarded
 	_show_prize_toast(prize_ball.prize_id, coins_awarded)
 	_set_play_status("Move the claw and press DROP!")
+
+	# Special balls do something to the glass on top of paying their coins. The
+	# trigger is data (the prize's "effect"); what it means lives here, not in
+	# GameData — same split as the rest of the physics claw.
+	match GameData.PRIZES.get(prize_ball.prize_id, {}).get("effect", ""):
+		"oil":
+			_oil.splat()
+			_set_play_status("Oil ball! The glass is all smeary now...")
+		"shine":
+			_oil.wipe_clean()
+			_set_play_status("Golden ball! Glass wiped sparkling clean!")
+
 	ball.queue_free()
 
 	# Grabbing reparents a ball out of the container immediately, so its child
