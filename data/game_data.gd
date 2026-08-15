@@ -16,11 +16,17 @@ class_name GameData
 #
 # LATER: this is where your daughter's drawings go. Swap "color" for a texture
 # path to her artwork, and let her name each plushie.
+#
+# A prize can carry an optional "special" tag naming a one-off behaviour the
+# physics claw runs when that ball is grabbed (see physics_playground.gd). The
+# Dalek is the first: grabbing it flashes an EXTERMINATE! warning and fires
+# laser pulses that zap a few other balls out of the pit on the way up.
 const PRIZES := {
 	"teddy":  { "name": "Teddy Bear",     "value": 5,  "weight": 60, "color": Color("c08552") },
 	"bunny":  { "name": "Floppy Bunny",   "value": 12, "weight": 25, "color": Color("e8c1c5") },
 	"ducky":  { "name": "Rubber Ducky",   "value": 20, "weight": 10, "color": Color("f4d35e") },
 	"dragon": { "name": "Sparkle Dragon", "value": 75, "weight": 5,  "color": Color("8ac7db") },
+	"dalek":  { "name": "Dalek",          "value": 50, "weight": 4,  "color": Color("bd8a3d"), "special": "dalek" },
 }
 
 
@@ -90,6 +96,18 @@ const RUN_END_PAUSE_SECONDS := 3.0  # how long the "run over" sign shows before
                                      # returning to the shop
 
 
+# --- DALEK (the "exterminator" ball) ------------------------------------------
+# The Dalek is a rare prize with a party trick: grabbing it flashes a big
+# EXTERMINATE! warning and fires laser pulses at a few random balls still in
+# the pit, destroying them as the claw carries the Dalek up. The effect lives
+# in physics_playground.gd (triggered off the "special" tag on the prize
+# above); these are just its knobs.
+const DALEK_LASER_COUNT := 3          # how many other balls the Dalek zaps (up to)
+const DALEK_LASER_INTERVAL := 0.18    # seconds between successive laser pulses
+const DALEK_LASER_FLASH_SECONDS := 0.3  # how long each laser beam lingers
+const DALEK_WARNING_SECONDS := 1.2    # how long the EXTERMINATE! sign flashes
+
+
 # --- UI SKIN (arcade pastel) --------------------------------------------------
 # Colors and style numbers lifted from the "Game Screen — Arcade Pastel" design
 # in the Claude Design project (screens/game-screen.html). Change a color here,
@@ -132,4 +150,10 @@ const SKIN := {
 	"marquee_bg": Color("ff9ec4"),
 	"marquee_border": Color("ffffff"),
 	"marquee_text": Color("ffffff"),
+
+	# danger marquee + laser beams (the Dalek's EXTERMINATE! warning)
+	"danger_bg": Color("e5484d"),
+	"danger_border": Color("ffffff"),
+	"danger_text": Color("fff4e6"),
+	"laser": Color("ff5a5a"),
 }

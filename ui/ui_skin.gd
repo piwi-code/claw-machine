@@ -97,10 +97,23 @@ static func style_quiet_button(btn: Button, font_size: int = 26) -> void:
 ## the end-of-run sign.
 static func make_marquee_title(text: String, font_size: int = 44) -> PanelContainer:
 	var skin: Dictionary = GameData.SKIN
+	return _make_badge(text, font_size,
+		skin["marquee_bg"], skin["marquee_border"], skin["marquee_text"])
+
+
+## The same badge in alarm colours (red pill, white border) — used for the
+## Dalek's flashing EXTERMINATE! warning.
+static func make_warning_title(text: String, font_size: int = 60) -> PanelContainer:
+	var skin: Dictionary = GameData.SKIN
+	return _make_badge(text, font_size,
+		skin["danger_bg"], skin["danger_border"], skin["danger_text"])
+
+
+static func _make_badge(text: String, font_size: int, bg: Color, border: Color, text_color: Color) -> PanelContainer:
 	var badge := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = skin["marquee_bg"]
-	style.border_color = skin["marquee_border"]
+	style.bg_color = bg
+	style.border_color = border
 	style.set_border_width_all(5)
 	style.set_corner_radius_all(24)
 	style.content_margin_left = 36
@@ -112,7 +125,7 @@ static func make_marquee_title(text: String, font_size: int = 44) -> PanelContai
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	style_label(label, font_size, skin["marquee_text"])
+	style_label(label, font_size, text_color)
 	badge.add_child(label)
 	return badge
 
