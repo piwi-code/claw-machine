@@ -68,6 +68,12 @@ Being built in small slices:
 - `claw/prize_ball.gd` — class `PrizeBall`. Placeholder RigidBody2D circle;
   `prize_id` drives both its payout (`GameData.PRIZES`) and its color, so
   rarer prizes already look different even before real art exists.
+- Special prizes: a `PRIZES` entry can carry a `"special"` tag naming a one-off
+  effect the playground runs when that ball is *grabbed* (economy stays in
+  `GameState`; the spectacle stays in the scene listener, not `ClawRig`). The
+  Dalek (`"special": "dalek"`) is the first — grabbing it flashes an
+  EXTERMINATE! warning and fires laser pulses that zap up to
+  `GameData.DALEK_LASER_COUNT` other balls out of the pit on the way up.
 - `GameState.pick_weighted_prize()` / `GameState.award_prize(prize_id)` —
   shared by both the old dice-roll (`ClawMachine.attempt_grab()`) and the
   physics claw, so "which prize" and "what winning one does" can't drift

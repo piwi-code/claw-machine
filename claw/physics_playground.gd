@@ -141,7 +141,7 @@ func _build_claw() -> void:
 	_claw = ClawRig.new()
 	_claw.position = Vector2.ZERO
 	_claw.move_bounds = Vector2(-GameData.PIT_WIDTH / 2.0 + 30.0, GameData.PIT_WIDTH / 2.0 - 30.0)
-	_claw.grabbed.connect(func(_b): _set_play_status("Got it! Bringing it home..."))
+	_claw.grabbed.connect(_on_ball_grabbed)
 	_claw.missed.connect(func(): _set_play_status("Missed... try again!"))
 	_claw.collected.connect(_on_ball_collected)
 	_world.add_child(_claw)
@@ -177,6 +177,96 @@ func _on_ball_collected(ball: Node) -> void:
 	# pit is one of the ways a run ends.
 	if _balls_container.get_child_count() == 0:
 		_end_run("Pit cleared!")
+
+
+# A ball has just been caught (still mid-air, on its way up). Most prizes just
+# ride home quietly; a "special" prize gets to do something on the way. Right
+# now that's only the Dalek — see _dalek_exterminate().
+func _on_ball_grabbed(ball: RigidBody2D) -> void:
+	_set_play_status("Got it! Bringing it home...")
+	var prize_ball := ball as PrizeBall
+	if prize_ball == null:
+		return
+	var special: String = GameData.PRIZES.get(prize_ball.prize_id, {}).get("special", "")
+	if special == "dalek":
+		_dalek_exterminate(prize_ball)
+
+
+# EXTERMINATE! Grabbing the Dalek flashes a warning sign and fires up to
+# GameData.DALEK_LASER_COUNT laser pulses at random other balls, destroying
+# them as the claw carries the Dalek up. The pulses are staggered for a
+# rat-a-tat feel, and each one is fired from the Dalek's *current* position so
+# the beams track it as it rises.
+func _dalek_exterminate(dalek_ball: PrizeBall) -> void:
+	_show_warning_sign("EXTERMINATE!")
+
+	# The Dalek itself is already reparented under the claw head (out of the
+	# container), so everything left here is a fair target.
+	var targets: Array = _balls_container.get_children().filter(
+		func(b): return b is PrizeBall and not b.is_queued_for_deletion())
+	targets.shuffle()
+	var count: int = mini(GameData.DALEK_LASER_COUNT, targets.size())
+	for i in count:
+		var target: PrizeBall = targets[i]
+		get_tree().create_timer(i * GameData.DALEK_LASER_INTERVAL).timeout.connect(
+			func(): _fire_laser(dalek_ball, target))
+
+
+# Zap one ball: draw a beam from the Dalek to the target, then destroy it. Both
+# ends can vanish before the pulse's turn (the Dalek keeps rising toward
+# collection; another pulse could already have claimed the target), so guard.
+func _fire_laser(source: Node2D, target: Node2D) -> void:
+	if not is_instance_valid(source) or not is_instance_valid(target):
+		return
+	if target.is_queued_for_deletion():
+		return
+	_draw_laser_beam(source.global_position, target.global_position)
+	target.queue_free()
+
+
+# A short-lived laser beam between two screen points. The Line2D is top_level so
+# its points are read as absolute viewport coordinates (source/target live under
+# the offset _world, this node does not), matching the same trick the HUD uses.
+func _draw_laser_beam(from_global: Vector2, to_global: Vector2) -> void:
+	var beam := Line2D.new()
+	beam.width = 6.0
+	beam.default_color = GameData.SKIN["laser"]
+	beam.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	beam.end_cap_mode = Line2D.LINE_CAP_ROUND
+	beam.points = PackedVector2Array([from_global, to_global])
+	beam.top_level = true
+	add_child(beam)
+
+	var tween := create_tween()
+	tween.tween_property(beam, "width", 0.0, GameData.DALEK_LASER_FLASH_SECONDS)
+	tween.parallel().tween_property(beam, "modulate:a", 0.0, GameData.DALEK_LASER_FLASH_SECONDS)
+	tween.tween_callback(beam.queue_free)
+
+
+# Big center-screen alarm badge that flashes a couple of times and fades out.
+# Unlike the run-over sign this is transient — the run keeps going underneath it.
+func _show_warning_sign(text: String) -> void:
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_make_top_level_ui(center)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var badge := UISkin.make_warning_title(text)
+	center.add_child(badge)
+
+	var flash := create_tween()
+	flash.set_loops(4)
+	flash.tween_property(badge, "modulate:a", 0.3, 0.12)
+	flash.tween_property(badge, "modulate:a", 1.0, 0.12)
+
+	# Fade the whole sign away after its moment, independent of the flashing.
+	get_tree().create_timer(GameData.DALEK_WARNING_SECONDS).timeout.connect(
+		func():
+			if not is_instance_valid(center):
+				return
+			var out := create_tween()
+			out.tween_property(badge, "modulate:a", 0.0, 0.25)
+			out.tween_callback(center.queue_free))
 
 
 # Status chatter (got it / missed / prompt) only makes sense mid-run; once the
