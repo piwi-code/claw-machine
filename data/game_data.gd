@@ -21,12 +21,16 @@ class_name GameData
 # physics claw runs when that ball is grabbed (see physics_playground.gd). The
 # Dalek is the first: grabbing it flashes an EXTERMINATE! warning and fires
 # laser pulses that zap a few other balls out of the pit on the way up.
+#
+# A prize can also carry an optional "outline" color — a rim drawn around the
+# ball so it reads as clearly different from the plain plushies. The Dalek uses
+# it for its metallic silver-with-dark-grey look.
 const PRIZES := {
 	"teddy":  { "name": "Teddy Bear",     "value": 5,  "weight": 60, "color": Color("c08552") },
 	"bunny":  { "name": "Floppy Bunny",   "value": 12, "weight": 25, "color": Color("e8c1c5") },
 	"ducky":  { "name": "Rubber Ducky",   "value": 20, "weight": 10, "color": Color("f4d35e") },
 	"dragon": { "name": "Sparkle Dragon", "value": 75, "weight": 5,  "color": Color("8ac7db") },
-	"dalek":  { "name": "Dalek",          "value": 50, "weight": 4,  "color": Color("bd8a3d"), "special": "dalek" },
+	"dalek":  { "name": "Dalek",          "value": 50, "weight": 12, "color": Color("c8cdd4"), "outline": Color("3b4149"), "special": "dalek" },
 }
 
 
