@@ -451,6 +451,14 @@ func _build_coins_hud(margin: int, top_clearance: int) -> void:
 func _show_prize_toast(prize_id: String, coins_awarded: int) -> void:
 	var prize: Dictionary = GameData.PRIZES[prize_id]
 	_toast_ball_style.bg_color = prize["color"]
+	# Mirror the ball's optional rim on the toast icon (the same style object is
+	# reused every toast, so clear the border for prizes that don't have one).
+	var outline: Variant = prize.get("outline", null)
+	if outline != null:
+		_toast_ball_style.border_color = outline
+		_toast_ball_style.set_border_width_all(2)
+	else:
+		_toast_ball_style.set_border_width_all(0)
 	_toast_label.text = "%s  +%d" % [prize["name"], coins_awarded]
 	_toast.visible = true
 	_toast.modulate.a = 1.0

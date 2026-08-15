@@ -4,6 +4,8 @@ class_name PrizeBall
 ## what it pays out (GameData.PRIZES) and its placeholder look — a flat
 ## colored circle until real prize sprites exist.
 
+const OUTLINE_WIDTH := 3.0  # px, thickness of a prize's optional rim
+
 var prize_id: String = ""
 
 
@@ -23,5 +25,12 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var color: Color = GameData.PRIZES.get(prize_id, {}).get("color", Color.WHITE)
-	draw_circle(Vector2.ZERO, GameData.BALL_RADIUS, color)
+	var prize: Dictionary = GameData.PRIZES.get(prize_id, {})
+	draw_circle(Vector2.ZERO, GameData.BALL_RADIUS, prize.get("color", Color.WHITE))
+
+	# Optional rim (the Dalek's dark-grey outline). Inset by half the stroke
+	# width so the outer edge lands on BALL_RADIUS instead of spilling past it.
+	var outline: Variant = prize.get("outline", null)
+	if outline != null:
+		draw_arc(Vector2.ZERO, GameData.BALL_RADIUS - OUTLINE_WIDTH / 2.0,
+			0.0, TAU, 32, outline, OUTLINE_WIDTH, true)
